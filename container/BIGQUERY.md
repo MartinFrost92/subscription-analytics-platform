@@ -1,6 +1,8 @@
 # Local Airflow with BigQuery
 
-Use one Google Cloud project with four BigQuery datasets, all in **EU**:
+Use the single platform project **`healthy-pager-398915`** with four BigQuery
+datasets, all in **EU**. The project is selected centrally in
+`compose.bigquery.yaml` through the `google_cloud_default` connection.
 
 | Dataset | Responsibility |
 | --- | --- |
@@ -32,17 +34,21 @@ Open a new PowerShell terminal afterward. From the repository root:
 
 ```powershell
 Set-Location container
-$projectId = 'YOUR_PROJECT_ID'
-gcloud init
-gcloud config set project $projectId
-gcloud services enable bigquery.googleapis.com --project $projectId
-gcloud auth application-default login
-gcloud auth application-default set-quota-project $projectId
+$projectId = 'healthy-pager-398915'
+gcloud.cmd auth login
+gcloud.cmd services enable bigquery.googleapis.com --project $projectId
+gcloud.cmd auth application-default login
+gcloud.cmd auth application-default set-quota-project $projectId
 ```
 
-`gcloud init` signs in the CLI. `application-default login` creates separate
+`gcloud.cmd auth login` signs in the CLI without selecting a default project.
+`application-default login` creates separate
 Application Default Credentials (ADC) for Python and Airflow. Complete the
 browser sign-in yourself. No downloaded service-account private key is needed.
+The ADC quota project identifies the quota/billing consumer for applicable API
+requests; the platform Google connection selects the BigQuery target for all
+DAGs. Changing the CLI's default project does not change that target. The `.cmd` launcher avoids the
+PowerShell script-policy issue on Windows.
 
 If permissions are restricted, the runtime identity needs BigQuery Job User
 on the project and BigQuery Data Editor on the four datasets. Dataset creation
@@ -75,11 +81,19 @@ New-Item -ItemType Directory -Force secrets | Out-Null
 Copy-Item -LiteralPath "$env:APPDATA/gcloud/application_default_credentials.json" -Destination secrets/google-adc.json
 ```
 
-Set this variable in your existing `container/.env` using your editor:
+The target project is defined once in `compose.bigquery.yaml`:
 
-```dotenv
-GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
+```yaml
+AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: google-cloud-platform://?project=healthy-pager-398915
+BIGQUERY_LOCATION: EU
 ```
+
+DAG configs do not select a project. Future BigQuery operators and reusable
+Python code must use `google_cloud_default` and its configured project, with
+the central EU location. Do not override the project from DAG params or rely
+on the CLI's default project. The existing placeholders do not issue BigQuery
+queries yet. This is a configuration convention; IAM permissions determine
+which Google Cloud resources the signed-in identity can access.
 
 Both `.env` and `secrets/` are ignored by Git. Do not paste credential JSON into
 DAGs, YAML config, chat, or tracked files. Airflow mounts only this credentials
@@ -97,8 +111,9 @@ docker compose -f compose.yaml -f compose.bigquery.yaml up -d --wait --wait-time
 docker compose -f compose.yaml -f compose.bigquery.yaml exec airflow-scheduler python /opt/airflow/scripts/verify-bigquery.py
 ```
 
-The check uses Airflow's `google_cloud_default` connection and ADC. It confirms
-all four datasets exist in EU, then runs `SELECT 1` with a 10 MiB billing limit.
+The check uses the central connection's project and ADC, with the central EU
+location. It confirms all four datasets exist there, then runs `SELECT 1`
+with a 10 MiB billing limit.
 It creates no tables and does not load data. A successful check is required
 before claiming the cloud connection works.
 

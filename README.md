@@ -34,6 +34,7 @@ dags/                         Independent Airflow DAGs
   model_dag.py                Analytical facts and dimensions
 src/subscription_analytics/   Reusable Python implementation
 helpers/                      Future reusable SQL and helper files
+  plugins/subscription_operators/ Shared Airflow operators
 ```
 
 Each independent DAG contains one executable Python logging placeholder and

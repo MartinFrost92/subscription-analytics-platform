@@ -1,0 +1,32 @@
+[
+    {
+        "name": "customer_id",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "Unique identifier for the customer."
+    },
+    {
+        "name": "first_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "First name of the customer."
+    },
+    {
+        "name": "last_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Last name of the customer."
+    },
+    {
+        "name": "email",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Email address of the customer."
+    },
+    {
+        "name": "created_at",
+        "type": "DATE",
+        "mode": "NULLABLE",
+        "description": "Timestamp when the customer record was created."
+    }
+]

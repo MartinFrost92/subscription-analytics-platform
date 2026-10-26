@@ -10,9 +10,11 @@ from google.cloud import bigquery
 
 
 def main() -> None:
-    project = os.environ["GOOGLE_CLOUD_PROJECT"]
     location = os.environ["BIGQUERY_LOCATION"]
     hook = BigQueryHook(gcp_conn_id="google_cloud_default", use_legacy_sql=False, location=location)
+    project = hook.project_id
+    if not project:
+        raise ValueError("The platform Google connection must define a project")
     client = hook.get_client(project_id=project, location=location)
     try:
         for name in ("staging", "transform", "model", "utils"):

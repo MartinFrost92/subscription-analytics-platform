@@ -19,7 +19,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__PARALLELISM: "4"
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
-    PYTHONPATH: /opt/airflow/src
+    PYTHONPATH: /opt/airflow/src:/opt/airflow/helpers/plugins
   volumes:
     - ../dags:/opt/airflow/dags:ro
     - ../src:/opt/airflow/src:ro
