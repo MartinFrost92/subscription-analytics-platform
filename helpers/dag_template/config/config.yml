@@ -1,0 +1,14 @@
+dag_defaults:
+  description: 'This is a placeholder DAG for the model layer.'
+  owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  catchup: false
+  tags:
+    - 'Template'
+
+stage: model
+
+full_load_tables:
+  task_id: model_placeholder
+delta_load_tables:
+  task_id: model_placeholder
