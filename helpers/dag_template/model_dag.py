@@ -24,7 +24,7 @@ with (DAG_DIR / "config" / "config.yml").open(encoding="utf-8") as config_file:
 with DAG(
     dag_id=DAG_ID,
     params=config,
-    **config["dag"],
+    **config["dag_defaults"],
 ) as dag:
     PythonOperator(
         python_callable=placeholder,
