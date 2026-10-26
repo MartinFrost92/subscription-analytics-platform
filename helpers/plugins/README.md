@@ -31,3 +31,42 @@ An offset of 1 hour 30 minutes targets the upstream logical date exactly
 Schedules/logical dates must align; manual test runs need an appropriate
 logical date. Fictional upstream names are placeholders and cannot satisfy
 the dependency.
+
+## Writing table data
+
+`FullLoadTableOperator(task_id=..., table_id=...)` reads
+`queries/production/<table_id>.sql`. Its SELECT results replace the existing
+table's contents using `WRITE_TRUNCATE_DATA`, preserving its schema and
+constraints. The destination dataset is resolved from `tables/tables.table.json`.
+`CREATE_NEVER` requires table creation to have succeeded first.
+
+`DeltaLoadTableOperator(task_id=..., table_id=...)` reads the same SQL path
+and executes the SQL as written. Incremental SQL such as MERGE must specify
+its own destination. The operator does not add truncation or append behavior.
+
+Both use `google_cloud_default`, the project in DAG `params.project_id`,
+and the central EU location. SQL is rendered with Airflow's runtime context,
+including `params` and `data_interval_end`. They extend Airflow's
+`BigQueryInsertJobOperator` and wait for the query job to finish.
+
+Configure one entry per table under `full_load_tables` or `delta_load_tables`:
+
+```yaml
+full_load_tables:
+  - name: dim_date
+    depends_on: null
+  - name: dim_customer
+    depends_on: null
+delta_load_tables:
+  - name: fact_sales
+    depends_on: [dim_date, dim_customer]
+```
+
+The DAG builds one task per table, gates all loads on table creation, and wires
+`depends_on` to other configured table names. Independent tables can run in
+parallel; fact_sales waits for both dimensions. Names must be unique across
+the two lists, and dependencies must reference configured tables without cycles.
+
+BigQuery MERGE requires billing to be enabled; no-billing sandbox projects
+reject DML even when the generated dataset is tiny. Pipeline execution can be
+tested only after that restriction is resolved and upstream sensor runs match.

@@ -5,7 +5,11 @@ import pendulum
 import yaml
 
 from airflow.sdk import DAG
-from subscription_operators.bigquery import CreateTablesOperator
+from subscription_operators.bigquery import (
+    CreateTablesOperator,
+    DeltaLoadTableOperator,
+    FullLoadTableOperator,
+)
 from subscription_operators.sensors import WaitForDagSensor
 
 # Both the checkout and container mount root contain dags/ and src/.
@@ -46,3 +50,22 @@ with DAG(
     )
 
     wait_for_dags >> create_tables
+
+    table_tasks = {}
+    for table in config["full_load_tables"]:
+        table_tasks[table["name"]] = FullLoadTableOperator(
+            task_id=f"full_load_{table['name']}",
+            table_id=table["name"],
+        )
+
+    for table in config["delta_load_tables"]:
+        table_tasks[table["name"]] = DeltaLoadTableOperator(
+            task_id=f"delta_load_{table['name']}",
+            table_id=table["name"],
+        )
+
+    create_tables >> list(table_tasks.values())
+
+    for table in config["full_load_tables"] + config["delta_load_tables"]:
+        for dependency in table.get("depends_on") or []:
+            table_tasks[dependency] >> table_tasks[table["name"]]

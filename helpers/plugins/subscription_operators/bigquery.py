@@ -4,6 +4,7 @@ import os
 
 from airflow.sdk import BaseOperator
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 
 
 class CreateTablesOperator(BaseOperator):
@@ -62,3 +63,57 @@ class CreateTablesOperator(BaseOperator):
                 exists_ok=True,
             )
             self.log.info("Ensured table %s.%s.%s exists", project_id, dataset_id, table_id)
+
+
+class _SqlTableOperator(BigQueryInsertJobOperator):
+    """Load SQL by table name using the shared connection and DAG project."""
+
+    def __init__(self, *, table_id: str, **kwargs):
+        self.table_id = table_id
+        super().__init__(
+            configuration={
+                "query": {
+                    "query": "{% include 'queries/production/" + table_id + ".sql' %}",
+                    "useLegacySql": False,
+                }
+            },
+            gcp_conn_id="google_cloud_default",
+            project_id="{{ params.project_id }}",
+            location=os.environ.get("BIGQUERY_LOCATION", "EU"),
+            deferrable=False,
+            **kwargs,
+        )
+
+
+class FullLoadTableOperator(_SqlTableOperator):
+    """Replace contents while preserving the defined schema and constraints."""
+
+    template_fields = (*_SqlTableOperator.template_fields, "tables")
+    template_fields_renderers = {
+        **_SqlTableOperator.template_fields_renderers,
+        "tables": "json",
+    }
+
+    def __init__(self, *, table_id: str, **kwargs):
+        super().__init__(table_id=table_id, **kwargs)
+        self.tables = "tables/tables.table.json"
+        self.configuration["query"].update(
+            writeDisposition="WRITE_TRUNCATE_DATA",
+            createDisposition="CREATE_NEVER",
+        )
+
+    def execute(self, context):
+        definitions = json.loads(self.tables) if isinstance(self.tables, str) else self.tables
+        matches = [table for table in definitions if table["table_id"] == self.table_id]
+        if len(matches) != 1:
+            raise ValueError(f"Expected exactly one table definition for {self.table_id}")
+        self.configuration["query"]["destinationTable"] = {
+            "projectId": self.project_id,
+            "datasetId": matches[0]["dataset_id"],
+            "tableId": self.table_id,
+        }
+        return super().execute(context)
+
+
+class DeltaLoadTableOperator(_SqlTableOperator):
+    """Execute incremental SQL as written; SQL defines its MERGE destination."""
