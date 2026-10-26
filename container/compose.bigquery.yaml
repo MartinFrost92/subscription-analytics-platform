@@ -1,0 +1,22 @@
+# Opt-in BigQuery access; combine with compose.yaml after local Google sign-in.
+x-bigquery: &bigquery
+  environment:
+    GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/secrets/google-adc.json
+    GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:?Set GOOGLE_CLOUD_PROJECT in container/.env}
+    BIGQUERY_LOCATION: EU
+    AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: google-cloud-platform://
+  volumes:
+    - type: bind
+      source: ./secrets
+      target: /opt/airflow/secrets
+      read_only: true
+      bind:
+        create_host_path: false
+
+services:
+  airflow-api-server:
+    <<: *bigquery
+  airflow-scheduler:
+    <<: *bigquery
+  airflow-dag-processor:
+    <<: *bigquery

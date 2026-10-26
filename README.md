@@ -6,6 +6,10 @@ modeling, and Power BI analytics are future work.
 
 ## Architecture and structure
 
+For the optional EU BigQuery warehouse (`staging`, `transform`, `model`, and
+`utils` datasets), follow [the BigQuery setup guide](container/BIGQUERY.md).
+Local Google authentication and dataset verification are required before use.
+
 Official `apache/airflow:3.1.7-python3.12` and `postgres:16-bookworm` images.
 Six services: API server (UI and execution API), scheduler using LocalExecutor,
 standalone DAG processor, one-shot metadata migration, metadata PostgreSQL,
