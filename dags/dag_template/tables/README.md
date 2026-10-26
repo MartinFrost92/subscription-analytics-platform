@@ -23,7 +23,7 @@ context, including `params`. For example:
 ```jinja
 [
   {
-    "dataset_id": "{{ params.bigquery.dataset_id }}",
+    "dataset_id": "{{ params.datasets.model }}",
     "table_id": "dim_customer",
     "schema_fields": {% include "schemas/dim_customer.schema.json" %},
     "clustering": {"fields": ["customer_id"]}

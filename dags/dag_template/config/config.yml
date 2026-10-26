@@ -1,0 +1,31 @@
+dag_defaults:
+  description: 'This is a placeholder DAG for the model layer.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Template'
+
+stage: model
+
+project_id: healthy-pager-398915
+
+wait_for_dags:
+  - external_dag_id: 'dags_transform_transform'
+    time_delta:
+      hours: 1
+      minutes: 30
+
+datasets:
+  staging: staging
+  transform: transform
+  model: model
+  utilities: utilities
+
+full_load_tables:
+  - {'name': 'dim_date', 'depends_on': null}
+  - {'name': 'dim_customer', 'depends_on': null} 
+delta_load_tables:
+  - {'name': 'fact_sales', 'depends_on': ['dim_date', 'dim_customer']} 

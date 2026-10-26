@@ -1,0 +1,20 @@
+[
+    {
+        "name": "date",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Sale date; daily partition field and key corresponding to dim_date.date."
+    },
+    {
+        "name": "customer_id",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Customer key corresponding to dim_customer.customer_id; clustering field."
+    },
+    {
+        "name": "sales",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Dummy sales measure for the customer and date."
+    }
+]

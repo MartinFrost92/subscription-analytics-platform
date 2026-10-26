@@ -1,0 +1,24 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_customer",
+        "schema_fields": {% include "schemas/dim_customer.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_date",
+        "schema_fields": {% include "schemas/dim_date.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "fact_sales",
+        "schema_fields": {% include "schemas/fact_sales.schema.json" %},
+        "timePartitioning": {
+            "type": "DAY",
+            "field": "date"
+        },
+        "clustering": {
+            "fields": ["customer_id"]
+        }
+    }
+]

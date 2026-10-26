@@ -7,7 +7,7 @@ modeling, and Power BI analytics are future work.
 ## Architecture and structure
 
 For the optional EU BigQuery warehouse (`staging`, `transform`, `model`, and
-`utils` datasets), follow [the BigQuery setup guide](container/BIGQUERY.md).
+`utilities` datasets), follow [the BigQuery setup guide](container/BIGQUERY.md).
 Local Google authentication and dataset verification are required before use.
 
 Official `apache/airflow:3.1.7-python3.12` and `postgres:16-bookworm` images.
@@ -161,7 +161,8 @@ docker compose up -d --wait --wait-timeout 300
   `docker compose logs --tail 100 airflow-init metadata-db analytics-db`, then
   inspect Airflow logs with the command above. Exit 137 can indicate insufficient
   memory; increase Docker/WSL resources and retry `up`.
-- DAG discovery: allow up to 180 seconds, inspect `list-import-errors` and DAG
+- DAG discovery: new files are scanned every 10 seconds in this local setup;
+  allow additional time for parsing. Inspect `list-import-errors` and DAG
   processor logs. Confirm Docker Desktop can read the repository bind mounts.
 - Task failures: inspect task logs and scheduler/API logs. Verify LocalExecutor
   and the execution API URL with `airflow config get-value`. All Airflow services

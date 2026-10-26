@@ -1,7 +1,0 @@
-[
-    {
-        "dataset_id": "{{ params.bigquery.dataset_id }}",
-        "table_id": "dim_customer",
-        "schema_fields": {% include "schemas/dim_customer.schema.json" %}
-    }
-]

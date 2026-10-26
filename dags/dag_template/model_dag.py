@@ -1,10 +1,12 @@
 """Create model tables from this DAG's local JSON definitions."""
 from pathlib import Path
 
+import pendulum
 import yaml
 
 from airflow.sdk import DAG
 from subscription_operators.bigquery import CreateTablesOperator
+from subscription_operators.sensors import WaitForDagSensor
 
 # Both the checkout and container mount root contain dags/ and src/.
 # Keep resource paths relative to DAG_DIR when copying this template.
@@ -20,14 +22,27 @@ DAG_ID = "_".join(DAG_FILE.relative_to(PROJECT_ROOT).with_suffix("").parts)
 with (DAG_DIR / "config" / "config.yml").open(encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file)
 
+dag_defaults = config["dag_defaults"].copy()
+dag_defaults["start_date"] = pendulum.parse(dag_defaults["start_date"])
 
 with DAG(
     dag_id=DAG_ID,
     params=config,
-    **config["dag_defaults"],
+    **dag_defaults,
 ) as dag:
 
-    CreateTablesOperator(
+    wait_for_dags = []
+    for dependency in config["wait_for_dags"]:
+        wait_for_dags.append(
+            WaitForDagSensor(
+                task_id=f"wait_for_{dependency['external_dag_id']}",
+                **dependency,
+            )
+        )
+
+    create_tables = CreateTablesOperator(
         task_id=f"create_{DAG_FILE.stem}_tables",
         tables="tables/tables.table.json",
     )
+
+    wait_for_dags >> create_tables

@@ -17,7 +17,7 @@ def main() -> None:
         raise ValueError("The platform Google connection must define a project")
     client = hook.get_client(project_id=project, location=location)
     try:
-        for name in ("staging", "transform", "model", "utils"):
+        for name in ("staging", "transform", "model", "utilities"):
             dataset = client.get_dataset(f"{project}.{name}")
             if dataset.location.upper() != location.upper():
                 raise ValueError(f"{name} is in {dataset.location}, expected {location}")

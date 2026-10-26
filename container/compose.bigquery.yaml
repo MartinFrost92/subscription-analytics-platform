@@ -3,7 +3,8 @@ x-bigquery: &bigquery
   environment:
     GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/secrets/google-adc.json
     # One platform-wide target; DAG configs do not select a project.
-    AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: google-cloud-platform://?project=healthy-pager-398915
+    GOOGLE_CLOUD_PROJECT: healthy-pager-398915
+    AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: '{"conn_type":"google_cloud_platform"}'
     BIGQUERY_LOCATION: EU
   volumes:
     - type: bind

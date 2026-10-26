@@ -2,14 +2,15 @@
 
 Use the single platform project **`healthy-pager-398915`** with four BigQuery
 datasets, all in **EU**. The project is selected centrally in
-`compose.bigquery.yaml` through the `google_cloud_default` connection.
+`compose.bigquery.yaml` through `GOOGLE_CLOUD_PROJECT`; the shared
+`google_cloud_default` connection uses ADC with that fixed project.
 
 | Dataset | Responsibility |
 | --- | --- |
 | `staging` | Ingestion and source normalization |
 | `transform` | Business transformations |
 | `model` | Analytical facts and dimensions |
-| `utils` | Monitoring results and temporary working tables |
+| `utilities` | Monitoring results and temporary working tables |
 
 Airflow and its metadata PostgreSQL remain local. BigQuery becomes the target
 analytical warehouse. Existing PostgreSQL volumes are preserved; no data is
@@ -46,7 +47,7 @@ gcloud.cmd auth application-default set-quota-project $projectId
 Application Default Credentials (ADC) for Python and Airflow. Complete the
 browser sign-in yourself. No downloaded service-account private key is needed.
 The ADC quota project identifies the quota/billing consumer for applicable API
-requests; the platform Google connection selects the BigQuery target for all
+requests; the platform container environment selects the BigQuery target for all
 DAGs. Changing the CLI's default project does not change that target. The `.cmd` launcher avoids the
 PowerShell script-policy issue on Windows.
 
@@ -61,7 +62,7 @@ Usage Consumer permission on that project.
 Run once, in the same terminal:
 
 ```powershell
-foreach ($dataset in @('staging', 'transform', 'model', 'utils')) {
+foreach ($dataset in @('staging', 'transform', 'model', 'utilities')) {
     bq --project_id=$projectId --location=EU mk --dataset "${projectId}:$dataset"
     if ($LASTEXITCODE -ne 0) { throw "Dataset creation failed: $dataset" }
 }
@@ -70,7 +71,7 @@ foreach ($dataset in @('staging', 'transform', 'model', 'utils')) {
 If a dataset already exists, inspect it instead of recreating it:
 `bq show "${projectId}:staging"`. Every dataset must be in EU; do not mix EU
 multi-region with individual European regions. Choose expiry policies for
-temporary `utils` tables when those tables are implemented.
+temporary `utilities` tables when those tables are implemented.
 
 ## 4. Make local credentials available to Airflow
 
@@ -84,7 +85,8 @@ Copy-Item -LiteralPath "$env:APPDATA/gcloud/application_default_credentials.json
 The target project is defined once in `compose.bigquery.yaml`:
 
 ```yaml
-AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: google-cloud-platform://?project=healthy-pager-398915
+GOOGLE_CLOUD_PROJECT: healthy-pager-398915
+AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: '{"conn_type":"google_cloud_platform"}'
 BIGQUERY_LOCATION: EU
 ```
 
@@ -111,7 +113,7 @@ docker compose -f compose.yaml -f compose.bigquery.yaml up -d --wait --wait-time
 docker compose -f compose.yaml -f compose.bigquery.yaml exec airflow-scheduler python /opt/airflow/scripts/verify-bigquery.py
 ```
 
-The check uses the central connection's project and ADC, with the central EU
+The check uses the centrally configured project and ADC, with the central EU
 location. It confirms all four datasets exist there, then runs `SELECT 1`
 with a 10 MiB billing limit.
 It creates no tables and does not load data. A successful check is required
