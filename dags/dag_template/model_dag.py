@@ -5,12 +5,12 @@ import pendulum
 import yaml
 
 from airflow.sdk import DAG
-from subscription_operators.bigquery import (
+from utilities.bigquery import (
     CreateTablesOperator,
     DeltaLoadTableOperator,
     FullLoadTableOperator,
 )
-from subscription_operators.sensors import WaitForDagSensor
+from utilities.sensors import WaitForDagSensor
 
 # Both the checkout and container mount root contain dags/ and src/.
 # Keep resource paths relative to DAG_DIR when copying this template.

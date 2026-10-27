@@ -1,7 +1,7 @@
 # Shared Airflow operators
 
 The container adds this directory to `PYTHONPATH`. Import shared operators
-from the `subscription_operators` package; no plugin registration is required.
+from the `utilities` package; no plugin registration is required.
 
 ## Waiting for upstream DAGs
 

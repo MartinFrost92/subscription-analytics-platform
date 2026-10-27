@@ -1,0 +1,17 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.staging }}",
+        "table_id": "customers",
+        "schema_fields": {% include "schemas/customers.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.staging }}",
+        "table_id": "subscriptions",
+        "schema_fields": {% include "schemas/subscriptions.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.staging }}",
+        "table_id": "invoices",
+        "schema_fields": {% include "schemas/invoices.schema.json" %}
+    }
+]

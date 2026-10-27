@@ -25,6 +25,7 @@ x-airflow-common: &airflow-common
     - ../src:/opt/airflow/src:ro
     - ../helpers:/opt/airflow/helpers:ro
     - ./scripts:/opt/airflow/scripts:ro
+    - ./data/staging:/opt/airflow/staging
     - airflow-logs:/opt/airflow/logs
     - airflow-auth:/opt/airflow/auth
   depends_on: &airflow-dependencies
@@ -35,6 +36,44 @@ x-airflow-common: &airflow-common
   restart: unless-stopped
 
 services:
+  source-db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: source
+      POSTGRES_DB: subscription_source
+      # Existing .env files remain usable; optionally supply a separate secret.
+      POSTGRES_PASSWORD: ${SOURCE_DB_PASSWORD:-${ANALYTICS_DB_PASSWORD:?Initialize container/.env first}}
+    volumes:
+      - source-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  source-api:
+    build: ../source_api
+    environment:
+      SOURCE_DB_HOST: source-db
+      SOURCE_DB_NAME: subscription_source
+      SOURCE_DB_USER: source
+      SOURCE_DB_PASSWORD: ${SOURCE_DB_PASSWORD:-${ANALYTICS_DB_PASSWORD:?Initialize container/.env first}}
+      SOURCE_DETAIL_LATENCY_MS: ${SOURCE_DETAIL_LATENCY_MS:-100}
+      SOURCE_API_KEY: ${SOURCE_API_KEY:-}
+    ports:
+      - "127.0.0.1:${SOURCE_API_PORT:-8000}:8000"
+    depends_on:
+      source-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
   metadata-db:
     image: postgres:16-bookworm
     environment:
@@ -122,6 +161,7 @@ services:
       start_period: 30s
 
 volumes:
+  source-data:
   metadata-data:
   analytics-data:
   airflow-logs:
