@@ -201,7 +201,7 @@ class RestTests(unittest.TestCase):
                          rows[0] + rows[1])
 
     def test_dag_dependencies_and_rendered_destinations(self):
-        dag_path = Path(__file__).resolve().parents[2] / 'dags/staging_rest_api/import.py'
+        dag_path = Path(__file__).resolve().parents[2] / 'dags/staging/synthetic_subscription_api/import.py'
         dag = runpy.run_path(str(dag_path))['dag']
         context = dict(dag=dag, params=dag.params,
                        data_interval_end=pendulum.datetime(2026, 10, 29))

@@ -1,7 +1,13 @@
 MERGE `{{ params.project_id }}.{{ params.datasets.staging }}.subscriptions` AS target
 USING `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_subscriptions` AS source
 ON target.subscription_id = source.subscription_id
-WHEN MATCHED THEN
+WHEN MATCHED AND (
+    target.account_id IS DISTINCT FROM source.account_id
+    OR target.product IS DISTINCT FROM source.product
+    OR target.start_date IS DISTINCT FROM source.start_date
+    OR target.stop_date IS DISTINCT FROM source.stop_date
+    OR target.status IS DISTINCT FROM source.status
+) THEN
     UPDATE SET
         account_id = source.account_id,
         product = source.product,

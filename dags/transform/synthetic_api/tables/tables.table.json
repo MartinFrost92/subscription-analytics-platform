@@ -1,0 +1,16 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.transform }}",
+        "table_id": "subscription_inventory",
+        "schema_fields": {% include "schemas/subscription_inventory.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["account_id", "subscription_id"]}
+    },
+    {
+        "dataset_id": "{{ params.datasets.transform }}",
+        "table_id": "invoice_revenue",
+        "schema_fields": {% include "schemas/invoice_revenue.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["account_id", "subscription_id"]}
+    }
+]

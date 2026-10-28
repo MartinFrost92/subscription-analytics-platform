@@ -1,0 +1,12 @@
+[
+    {"name": "date", "type": "DATE", "mode": "REQUIRED"},
+    {"name": "invoice_number", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "account_id", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "subscription_id", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "start_date", "type": "DATE", "mode": "REQUIRED"},
+    {"name": "stop_date", "type": "DATE", "mode": "REQUIRED"},
+    {"name": "charge", "type": "NUMERIC", "mode": "REQUIRED"},
+    {"name": "discount", "type": "NUMERIC", "mode": "REQUIRED"},
+    {"name": "daily_revenue", "type": "NUMERIC", "mode": "NULLABLE"},
+    {"name": "updated_at", "type": "DATE", "mode": "REQUIRED"}
+]

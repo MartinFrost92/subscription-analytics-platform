@@ -1,0 +1,11 @@
+[
+    {"name": "date", "type": "DATE", "mode": "NULLABLE"},
+    {"name": "account_id", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "subscription_id", "type": "INTEGER", "mode": "NULLABLE"},
+    {"name": "account_name", "type": "STRING", "mode": "REQUIRED"},
+    {"name": "account_country", "type": "STRING", "mode": "REQUIRED"},
+    {"name": "product", "type": "STRING", "mode": "NULLABLE"},
+    {"name": "current_status", "type": "STRING", "mode": "NULLABLE"},
+    {"name": "updated_at", "type": "DATE", "mode": "NULLABLE"},
+    {"name": "event_type", "type": "STRING", "mode": "REQUIRED"}
+]

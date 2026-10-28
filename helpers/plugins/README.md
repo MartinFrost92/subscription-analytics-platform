@@ -97,8 +97,9 @@ the dependency.
 
 `FullLoadTableOperator(task_id=..., table_id=...)` reads
 `queries/production/<table_id>.sql`. Its SELECT results replace the existing
-table's contents using `WRITE_TRUNCATE_DATA`, preserving its schema and
-constraints. The destination dataset is resolved from `tables/tables.table.json`.
+table's contents and schema using `WRITE_TRUNCATE`. The query output defines
+the replacement schema; existing constraints are removed. The destination
+dataset is resolved from `tables/tables.table.json`.
 `CREATE_NEVER` requires table creation to have succeeded first.
 
 `DeltaLoadTableOperator(task_id=..., table_id=...)` reads the same SQL path

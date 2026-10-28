@@ -1,7 +1,14 @@
 MERGE `{{ params.project_id }}.{{ params.datasets.staging }}.invoices` AS target
 USING `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_invoices` AS source
 ON target.invoice_number = source.invoice_number
-WHEN MATCHED THEN
+WHEN MATCHED AND (
+    target.account_id IS DISTINCT FROM source.account_id
+    OR target.subscription_id IS DISTINCT FROM source.subscription_id
+    OR target.charge IS DISTINCT FROM source.charge
+    OR target.discount IS DISTINCT FROM source.discount
+    OR target.start_date IS DISTINCT FROM source.start_date
+    OR target.stop_date IS DISTINCT FROM source.stop_date
+) THEN
     UPDATE SET
         account_id = source.account_id,
         subscription_id = source.subscription_id,

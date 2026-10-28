@@ -1,7 +1,11 @@
 MERGE `{{ params.project_id }}.{{ params.datasets.staging }}.customers` AS target
 USING `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_customers` AS source
 ON target.account_id = source.account_id
-WHEN MATCHED THEN
+WHEN MATCHED AND (
+    target.name IS DISTINCT FROM source.name
+    OR target.country IS DISTINCT FROM source.country
+    OR target.created_at IS DISTINCT FROM source.created_at
+) THEN
     UPDATE SET
         name = source.name,
         country = source.country,

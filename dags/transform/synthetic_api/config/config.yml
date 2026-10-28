@@ -1,0 +1,31 @@
+dag_defaults:
+  description: 'Transform subscription events and daily invoice revenue.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Transform'
+
+stage: transform
+
+project_id: healthy-pager-398915
+
+wait_for_dags:
+  - external_dag_id: 'staging_synthetic_subscription_api_import'
+    time_delta:
+      hours: 0
+      minutes: 0
+
+datasets:
+  staging: staging
+  transform: transform
+  model: model
+  utilities: utilities
+
+full_load_tables:
+  - {'name': 'subscription_inventory', 'depends_on': null}
+  - {'name': 'invoice_revenue', 'depends_on': null}
+
+delta_load_tables: []

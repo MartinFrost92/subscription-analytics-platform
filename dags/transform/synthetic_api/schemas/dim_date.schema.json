@@ -1,0 +1,38 @@
+[
+    {
+        "name": "date",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Calendar date and date dimension key."
+    },
+    {
+        "name": "month_name",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Full calendar month name, such as January."
+    },
+    {
+        "name": "month_number",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "Calendar month number from 1 to 12; sorts month_name in Power BI."
+    },
+    {
+        "name": "quarter",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Calendar quarter label, such as Q1."
+    },
+    {
+        "name": "quarter_number",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "Calendar quarter number from 1 to 4; sorts quarter in Power BI."
+    },
+    {
+        "name": "year",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "Four-digit calendar year."
+    }
+]

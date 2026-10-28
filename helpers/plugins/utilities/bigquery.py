@@ -92,7 +92,7 @@ class _SqlTableOperator(BigQueryInsertJobOperator):
 
 
 class FullLoadTableOperator(_SqlTableOperator):
-    """Replace contents while preserving the defined schema and constraints."""
+    """Replace table contents and schema with the query output."""
 
     template_fields = (*_SqlTableOperator.template_fields, "tables")
     template_fields_renderers = {
@@ -104,7 +104,7 @@ class FullLoadTableOperator(_SqlTableOperator):
         super().__init__(table_id=table_id, **kwargs)
         self.tables = "tables/tables.table.json"
         self.configuration["query"].update(
-            writeDisposition="WRITE_TRUNCATE_DATA",
+            writeDisposition="WRITE_TRUNCATE",
             createDisposition="CREATE_NEVER",
         )
 

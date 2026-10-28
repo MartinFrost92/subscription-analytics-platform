@@ -13,7 +13,7 @@ stage: model
 project_id: healthy-pager-398915
 
 wait_for_dags:
-  - external_dag_id: 'dags_transform_transform'
+  - external_dag_id: 'transform_transform'
     time_delta:
       hours: 1
       minutes: 30

@@ -5,6 +5,7 @@ from pathlib import Path
 import pendulum
 import yaml
 from airflow.sdk import DAG
+from utilities.dag import get_dag_id
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from utilities.bigquery import CreateTablesOperator, DeltaLoadTableOperator, METADATA_SCHEMA
 from utilities.validation import BigQueryDataValidationOperator
@@ -12,12 +13,7 @@ from utilities.rest_api import RestAPIToGCSOperator, ConsolidateExtractionMetada
 
 DAG_FILE = Path(__file__).resolve()
 DAG_DIR = DAG_FILE.parent
-PROJECT_ROOT = next(
-    parent
-    for parent in DAG_FILE.parents
-    if (parent / 'dags').is_dir() and (parent / 'src').is_dir()
-)
-DAG_ID = '_'.join(DAG_FILE.relative_to(PROJECT_ROOT).with_suffix('').parts)
+DAG_ID = get_dag_id(__file__)
 CONFIG_PATH = DAG_DIR / 'config' / 'config.yml'
 GCS_BUCKET = 'subscription-analytics-raw'
 with CONFIG_PATH.open(encoding='utf-8') as stream:

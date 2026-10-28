@@ -5,6 +5,7 @@ import pendulum
 import yaml
 
 from airflow.sdk import DAG
+from utilities.dag import get_dag_id
 from utilities.bigquery import (
     CreateTablesOperator,
     DeltaLoadTableOperator,
@@ -13,16 +14,11 @@ from utilities.bigquery import (
 from utilities.sensors import WaitForDagSensor
 from utilities.validation import BigQueryDataValidationOperator
 
-# Both the checkout and container mount root contain dags/ and src/.
+# Keep the DAG ID consistent with its location under dags/.
 # Keep resource paths relative to DAG_DIR when copying this template.
 DAG_FILE = Path(__file__).resolve()
 DAG_DIR = DAG_FILE.parent
-PROJECT_ROOT = next(
-    parent
-    for parent in DAG_FILE.parents
-    if (parent / "dags").is_dir() and (parent / "src").is_dir()
-)
-DAG_ID = "_".join(DAG_FILE.relative_to(PROJECT_ROOT).with_suffix("").parts)
+DAG_ID = get_dag_id(__file__)
 
 with (DAG_DIR / "config" / "config.yml").open(encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file)
