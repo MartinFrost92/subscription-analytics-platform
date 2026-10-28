@@ -1,0 +1,32 @@
+dag_defaults:
+  description: 'This extracts current curerncy exchange rates from the national bank of Denmark.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Run me first'
+
+project_id: 'healthy-pager-398915'
+
+datasets:
+  staging: 'staging'
+  transform: 'transform'
+  model: 'model'
+  utilities: 'utilities'
+
+connection_id: 'national_banken_api'
+
+extraction_settings:
+  max_workers: 100
+  requests_per_second: 1000
+  
+end_points:
+  - {
+      'name': 'exchange_rates', 
+      'request': 'GET', 
+      'path': 'currencyratesxml', 
+      'response_format': 'xml',
+      'records_path': 'exchangerates.dailyrates.currency',
+    }

@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 import threading
 import time
 from urllib.parse import quote, urljoin, urlsplit
+from xml.etree import ElementTree
 
 import requests
 import yaml
@@ -24,6 +25,24 @@ def json_path(value, path):
         value = value[int(part)] if isinstance(value, list) else value[part]
     return value
 
+def xml_value(element):
+    """Convert XML records to dictionaries, preserving attributes and repeats."""
+    value = {'@' + name.rsplit('}', 1)[-1]: text for name, text in element.attrib.items()}
+    for child in element:
+        name = child.tag.rsplit('}', 1)[-1]
+        item = xml_value(child)
+        if name not in value:
+            value[name] = item
+        elif isinstance(value[name], list):
+            value[name].append(item)
+        else:
+            value[name] = [value[name], item]
+    text = (element.text or '').strip()
+    if not value:
+        return text or None
+    if text:
+        value['#text'] = text
+    return value
 
 class _RateLimiter:
     def __init__(self, requests_per_second):
@@ -41,7 +60,6 @@ class _RateLimiter:
                     self.next_request = time.monotonic() + self.spacing
                     return
             time.sleep(delay)
-
 
 class RestAPIToGCSOperator(BaseOperator):
     """Write raw JSONL and push API-reported totals under extraction_metadata.
@@ -80,7 +98,9 @@ class RestAPIToGCSOperator(BaseOperator):
             raise ValueError('API URL points to an unapproved origin')
         return url
 
-    def _request(self, method, url, params):
+    def _request(self, method, url, params, response_format='json'):
+        if response_format not in ('json', 'xml'):
+            raise ValueError('response_format must be json or xml')
         # Keep connection authentication, but give each worker its own session.
         if not hasattr(self._local, 'session'):
             session = requests.Session()
@@ -97,6 +117,9 @@ class RestAPIToGCSOperator(BaseOperator):
             response.raise_for_status()
             if 300 <= response.status_code < 400:
                 raise requests.HTTPError('API redirect refused', response=response)
+            if response_format == 'xml':
+                root = ElementTree.fromstring(response.content)
+                return {root.tag.rsplit('}', 1)[-1]: xml_value(root)}, response.headers
             return response.json(), response.headers
 
     def _pages(self, endpoint):
@@ -115,8 +138,13 @@ class RestAPIToGCSOperator(BaseOperator):
             if state in seen:
                 raise ValueError('Pagination repeated a cursor or URL')
             seen.add(state)
-            payload, headers = self._request(endpoint.get('request', 'GET'), url, params)
+            payload, headers = self._request(
+                endpoint.get('request', 'GET'), url, params,
+                response_format=endpoint.get('response_format', 'json'),
+            )
             records = json_path(payload, endpoint.get('records_path'))
+            if endpoint.get('response_format') == 'xml' and not isinstance(records, list):
+                records = [] if records is None else [records]
             if not isinstance(records, list):
                 raise ValueError('Collection must be a JSON array; configure records_path')
             expected = None
@@ -156,7 +184,8 @@ class RestAPIToGCSOperator(BaseOperator):
         identifier = json_path(item, endpoint.get('id_field'))
         path = endpoint['detail_path'].replace('{id}', quote(str(identifier), safe=''))
         record, _ = self._request(endpoint.get('request', 'GET'),
-                                  urljoin(self._base_url, path), endpoint.get('detail_params'))
+                                  urljoin(self._base_url, path), endpoint.get('detail_params'),
+                                  response_format=endpoint.get('response_format', 'json'))
         if not isinstance(record, dict):
             raise ValueError('Detail response must be a JSON object')
         return record
@@ -177,7 +206,10 @@ class RestAPIToGCSOperator(BaseOperator):
 
     def execute(self, context):
         config = yaml.safe_load(Path(self.config_path).read_text(encoding='utf-8'))
-        endpoints = config['end_points']
+        endpoints = [
+            {'response_format': config.get('response_format', 'json'), **endpoint}
+            for endpoint in config['end_points']
+        ]
         if self.endpoint_name is not None:
             endpoints = [item for item in endpoints if item['name'] == self.endpoint_name]
             if len(endpoints) != 1:

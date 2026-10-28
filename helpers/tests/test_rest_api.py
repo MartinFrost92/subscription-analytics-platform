@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 import pendulum
 import requests
 import yaml
+from xml.etree.ElementTree import ParseError
 from airflow.sdk import Connection
 from utilities.rest_api import (
     ConsolidateExtractionMetadataOperator, RestAPIToGCSOperator, _RateLimiter,
@@ -40,7 +41,7 @@ class RestTests(unittest.TestCase):
                 operator = self.operator()
                 requested = []
                 responses = iter([([1, 2], {}), ([], {})])
-                def request(method, url, params):
+                def request(method, url, params, **kwargs):
                     requested.append(dict(params))
                     return next(responses)
                 endpoint = dict(name='customers', path='customers', pagination=dict(
@@ -83,7 +84,7 @@ class RestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'JSON array'):
             self.pages(dict(name='customers', path='customers'), [({'unexpected': 1}, {})])
 
-    def execute_extraction(self, endpoints, responses, **kwargs):
+    def execute_extraction(self, endpoints, responses, config_response_format=None, **kwargs):
         uploads = {}
         response_iterator = iter(responses)
         observed = []
@@ -92,7 +93,8 @@ class RestTests(unittest.TestCase):
             payload, headers, status = next(response_iterator)
             response = requests.Response()
             response.status_code = status
-            response._content = json.dumps(payload).encode('utf-8')
+            response._content = (payload.encode('utf-8') if isinstance(payload, str)
+                                 else json.dumps(payload).encode('utf-8'))
             response._content_consumed = True
             response.headers.update(headers)
             return response
@@ -103,7 +105,10 @@ class RestTests(unittest.TestCase):
         ti = MagicMock()
         with TemporaryDirectory() as directory:
             config_path = Path(directory, 'config.yml')
-            config_path.write_text(yaml.safe_dump({'end_points': endpoints}), encoding='utf-8')
+            config = {'end_points': endpoints}
+            if config_response_format is not None:
+                config['response_format'] = config_response_format
+            config_path.write_text(yaml.safe_dump(config), encoding='utf-8')
             operator = self.operator(**kwargs)
             operator.config_path = str(config_path)
             context = dict(ti=ti, run_id='manual__test',
@@ -115,6 +120,58 @@ class RestTests(unittest.TestCase):
                 gcs.return_value.upload.side_effect = upload
                 result = operator.execute(context)
         return uploads, ti, result, observed
+
+    def test_xml_records_attributes_namespaces_and_total(self):
+        endpoint = dict(name='rates', path='rates', response_format='xml',
+                        records_path='rates.rate', expected_rows_path='rates.@total')
+        xml = ('<rates xmlns="urn:rates" total="20">'
+               '<rate code="EUR"><value>7.46</value></rate>'
+               '<rate code="USD"><value>6.85</value></rate></rates>')
+        uploads, ti, _, _ = self.execute_extraction([endpoint], [(xml, {}, 200)])
+        self.assertEqual([json.loads(line) for line in next(iter(uploads.values())).splitlines()],
+                         [{'@code': 'EUR', 'value': '7.46'}, {'@code': 'USD', 'value': '6.85'}])
+        ti.xcom_push.assert_called_once_with(key='extraction_metadata',
+                                           value=[{'name': 'rates', 'expected_rows': 20}])
+
+    def test_xml_singleton_and_empty_record_selection(self):
+        for xml, path, expected in [
+            ('<rates><rate code="EUR">7.46</rate></rates>', 'rates.rate',
+             [{'@code': 'EUR', '#text': '7.46'}]),
+            ('<rates/>', 'rates', []),
+        ]:
+            with self.subTest(xml=xml):
+                endpoint = dict(name='rates', path='rates', response_format='xml', records_path=path)
+                uploads, _, _, _ = self.execute_extraction([endpoint], [(xml, {}, 200)])
+                self.assertEqual([json.loads(line) for line in next(iter(uploads.values())).splitlines()], expected)
+
+    def test_xml_config_default_and_json_endpoint_override(self):
+        endpoints = [dict(name='rates', path='rates', records_path='rates.rate'),
+                     dict(name='customers', path='customers', response_format='json')]
+        uploads, _, _, _ = self.execute_extraction(
+            endpoints, [('<rates><rate code="EUR"/></rates>', {}, 200), ([{'id': 1}], {}, 200)],
+            config_response_format='xml')
+        records = [[json.loads(line) for line in text.splitlines()] for text in uploads.values()]
+        self.assertEqual(records, [[{'@code': 'EUR'}], [{'id': 1}]])
+
+    def test_xml_pagination_and_detail_requests(self):
+        endpoint = dict(name='items', path='items', response_format='xml',
+                        records_path='response.item', id_field='@id', detail_path='items/{id}',
+                        pagination=dict(strategy='cursor', identifier='cursor', cursor_path='response.next'))
+        responses = [('<response><item id="1"/><next>second</next></response>', {}, 200),
+                     ('<item id="1"><name>first</name></item>', {}, 200),
+                     ('<response><item id="2"/><next/></response>', {}, 200),
+                     ('<item id="2"><name>second</name></item>', {}, 200)]
+        uploads, _, _, _ = self.execute_extraction([endpoint], responses)
+        self.assertEqual([json.loads(line) for line in next(iter(uploads.values())).splitlines()],
+                         [{'item': {'@id': '1', 'name': 'first'}},
+                          {'item': {'@id': '2', 'name': 'second'}}])
+
+    def test_invalid_xml_and_response_format_fail(self):
+        with self.assertRaises(ParseError):
+            self.execute_extraction([dict(name='rates', path='rates', response_format='xml')],
+                                    [('<rates>', {}, 200)])
+        with self.assertRaisesRegex(ValueError, 'response_format'):
+            self.execute_extraction([dict(name='rates', path='rates', response_format='csv')], [])
 
     def test_auth_raw_json_and_independent_totals(self):
         endpoints = [dict(name='customers', path='customers', detail_path='customers/{id}',

@@ -1,0 +1,20 @@
+[
+    {
+        "name":  "code",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Currency code from currency.code."
+    },
+    {
+        "name":  "description",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Currency description from currency.desc."
+    },
+    {
+        "name":  "rate",
+        "type":  "NUMERIC",
+        "mode":  "REQUIRED",
+        "description":  "Published exchange rate from currency.rate."
+    }
+]

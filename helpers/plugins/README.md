@@ -19,6 +19,27 @@ for nested collections; both accept dotted paths including array indexes.
 Detail requests run in bounded batches using `max_workers`, with a shared
 `requests_per_second` limit per extraction task. Independent tasks have separate limits.
 
+Responses default to JSON. Set `response_format: xml` at the config root or on
+an endpoint to parse XML before selecting records and writing JSONL:
+
+```yaml
+end_points:
+  - name: rates
+    path: rates.xml
+    response_format: xml
+    records_path: rates.rate
+```
+
+For `<rates><rate code="EUR"><value>7.46</value></rate></rates>`, this writes
+`{"@code":"EUR","value":"7.46"}`. XML attributes use `@`, text alongside
+attributes/children uses `#text`, and repeated tags become lists. Namespace
+prefixes are removed; paths use local tag names. Values remain strings.
+Single selected XML records become one-item lists; an empty selected element
+produces no records. Missing configured paths still raise parsing errors.
+The root element remains in parsed responses, including detail responses.
+Endpoint settings override the root response format. Both collection and
+detail requests use the endpoint's format; no extra packages are needed.
+
 ```yaml
 connection_id: synthetic_api
 extraction_settings:
