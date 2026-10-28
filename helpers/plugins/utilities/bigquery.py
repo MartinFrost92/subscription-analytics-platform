@@ -94,28 +94,32 @@ class _SqlTableOperator(BigQueryInsertJobOperator):
 class FullLoadTableOperator(_SqlTableOperator):
     """Replace table contents and schema with the query output."""
 
-    template_fields = (*_SqlTableOperator.template_fields, "tables")
+    template_fields = (*_SqlTableOperator.template_fields, "tables", "dataset_id")
     template_fields_renderers = {
         **_SqlTableOperator.template_fields_renderers,
         "tables": "json",
     }
 
-    def __init__(self, *, table_id: str, **kwargs):
+    def __init__(self, *, table_id: str, dataset_id=None, **kwargs):
         super().__init__(table_id=table_id, **kwargs)
+        self.dataset_id = dataset_id
         self.tables = "tables/tables.table.json"
         self.configuration["query"].update(
             writeDisposition="WRITE_TRUNCATE",
-            createDisposition="CREATE_NEVER",
+            createDisposition="CREATE_IF_NEEDED" if dataset_id else "CREATE_NEVER",
         )
 
     def execute(self, context):
-        definitions = json.loads(self.tables) if isinstance(self.tables, str) else self.tables
-        matches = [table for table in definitions if table["table_id"] == self.table_id]
-        if len(matches) != 1:
-            raise ValueError(f"Expected exactly one table definition for {self.table_id}")
+        dataset_id = self.dataset_id
+        if dataset_id is None:
+            definitions = json.loads(self.tables) if isinstance(self.tables, str) else self.tables
+            matches = [table for table in definitions if table["table_id"] == self.table_id]
+            if len(matches) != 1:
+                raise ValueError(f"Expected exactly one table definition for {self.table_id}")
+            dataset_id = matches[0]["dataset_id"]
         self.configuration["query"]["destinationTable"] = {
             "projectId": self.project_id,
-            "datasetId": matches[0]["dataset_id"],
+            "datasetId": dataset_id,
             "tableId": self.table_id,
         }
         return super().execute(context)

@@ -14,7 +14,6 @@ SELECT
     CASE
         WHEN output_value = source_value THEN NUMERIC '0'
         WHEN source_value = 0 THEN NULL
-        -- Enforce exact totals even if the percentage rounds to zero in NUMERIC.
         WHEN SAFE_DIVIDE(output_value - source_value, source_value) * 100 = 0
             THEN ERROR('Invoice revenue totals differ, but the percentage difference rounds to zero.')
         ELSE SAFE_DIVIDE(output_value - source_value, source_value) * 100

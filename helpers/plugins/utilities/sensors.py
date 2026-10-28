@@ -11,7 +11,8 @@ class WaitForDagSensor(ExternalTaskSensor):
     not from the current wall-clock time.
     """
 
-    def __init__(self, *, external_dag_id: str, time_delta: dict, **kwargs):
+    def __init__(self, *, external_dag_id: str, time_delta: dict | None = None, **kwargs):
+        time_delta = time_delta or {}
         self.time_delta = time_delta
         execution_delta = timedelta(
             hours=time_delta.get("hours", 0),

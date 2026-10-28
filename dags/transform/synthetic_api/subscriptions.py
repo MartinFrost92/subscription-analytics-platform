@@ -48,26 +48,28 @@ with DAG(
 
     wait_for_dags >> create_tables
 
-    table_tasks = {}
-    for table in config["full_load_tables"]:
-        table_tasks[table["name"]] = FullLoadTableOperator(
-            task_id=f"full_load_{table['name']}",
-            table_id=table["name"],
+    tmp_tasks = {}
+    for table in config["delta_load_tables"]:
+        tmp_tasks[table["name"]] = FullLoadTableOperator(
+            task_id=f"tmp_{table['name']}",
+            table_id=f"tmp_{table['name']}",
+            dataset_id=config["datasets"]["utilities"],
         )
 
+    table_tasks = {}
     for table in config["delta_load_tables"]:
         table_tasks[table["name"]] = DeltaLoadTableOperator(
             task_id=f"delta_load_{table['name']}",
             table_id=table["name"],
         )
 
-    create_tables >> list(table_tasks.values())
+    for table in config["delta_load_tables"]:
+        name = table["name"]
+        create_tables >> tmp_tasks[name] >> table_tasks[name]
 
-    for table in config["full_load_tables"] + config["delta_load_tables"]:
         for dependency in table.get("depends_on") or []:
-            table_tasks[dependency] >> table_tasks[table["name"]]
+            table_tasks[dependency] >> tmp_tasks[name]
 
-    # Supply custom validation SQL for this DAG's transformations.
     validate_data = BigQueryDataValidationOperator(
         task_id="validate_data",
         sql="queries/monitoring/data_validation.sql",
