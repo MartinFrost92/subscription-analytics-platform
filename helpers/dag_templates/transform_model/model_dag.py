@@ -11,6 +11,7 @@ from utilities.bigquery import (
     FullLoadTableOperator,
 )
 from utilities.sensors import WaitForDagSensor
+from utilities.validation import BigQueryDataValidationOperator
 
 # Both the checkout and container mount root contain dags/ and src/.
 # Keep resource paths relative to DAG_DIR when copying this template.
@@ -69,3 +70,12 @@ with DAG(
     for table in config["full_load_tables"] + config["delta_load_tables"]:
         for dependency in table.get("depends_on") or []:
             table_tasks[dependency] >> table_tasks[table["name"]]
+
+    # Supply custom validation SQL for this DAG's transformations.
+    validate_data = BigQueryDataValidationOperator(
+        task_id="validate_data",
+        sql="queries/monitoring/data_validation.sql",
+        project_id="{{ params.project_id }}",
+    )
+    for table_task in table_tasks.values():
+        table_task >> validate_data
