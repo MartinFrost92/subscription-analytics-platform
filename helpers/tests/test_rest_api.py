@@ -182,7 +182,7 @@ class RestTests(unittest.TestCase):
     def test_consolidation_and_stable_overwrite_key(self):
         operator = ConsolidateExtractionMetadataOperator(
             task_id='metadata', extraction_task_ids=['extract_customers', 'extract_invoices'],
-            gcs_bucket='raw', name='subscription_api')
+            gcs_bucket='raw')
         rows = [[{'name': 'customers', 'expected_rows': None}],
                 [{'name': 'invoices', 'expected_rows': 3000}]]
         ti = MagicMock()
@@ -193,7 +193,7 @@ class RestTests(unittest.TestCase):
             first = operator.execute(context)
             second = operator.execute(context)
         self.assertEqual(first, second)
-        self.assertEqual(first, 'gs://raw/utilities/20261029T000000_subscription_staging_subscription_api_metadata.json')
+        self.assertEqual(first, 'gs://raw/utilities/20261029T000000_subscription_staging_metadata.json')
         calls = gcs.return_value.upload.call_args_list
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[0].kwargs, calls[1].kwargs)
@@ -218,7 +218,7 @@ class RestTests(unittest.TestCase):
             destination = load.render_template(load.destination_project_dataset_table, context)
             self.assertEqual(destination,
                              f"{dag.params['project_id']}.{table['dataset_id']}.{table['table_id']}")
-            self.assertEqual(table['table_id'], f'20261029T000000_staging_rest_api_{name}')
+            self.assertEqual(table['table_id'], f'20261029T000000_{dag.dag_id}_{name}')
             self.assertEqual(load.upstream_task_ids, {f'extract_{name}'})
 
 

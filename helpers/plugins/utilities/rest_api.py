@@ -223,14 +223,13 @@ class RestAPIToGCSOperator(BaseOperator):
 class ConsolidateExtractionMetadataOperator(BaseOperator):
     """Write all successful endpoint metadata once, after extraction tasks finish."""
 
-    template_fields = ('gcs_bucket', 'name')
+    template_fields = ('gcs_bucket',)
 
-    def __init__(self, *, extraction_task_ids, gcs_bucket, name,
+    def __init__(self, *, extraction_task_ids, gcs_bucket,
                  gcp_conn_id='google_cloud_default', **kwargs):
         super().__init__(**kwargs)
         self.extraction_task_ids = extraction_task_ids
         self.gcs_bucket = gcs_bucket
-        self.name = name
         self.gcp_conn_id = gcp_conn_id
 
     def execute(self, context):
@@ -238,7 +237,7 @@ class ConsolidateExtractionMetadataOperator(BaseOperator):
         for task_id in self.extraction_task_ids:
             rows.extend(context['ti'].xcom_pull(task_ids=task_id, key='extraction_metadata'))
         timestamp = context['data_interval_end'].strftime('%Y%m%dT%H%M%S')
-        object_name = f"utilities/{timestamp}_{context['dag'].dag_id}_{self.name}_metadata.json"
+        object_name = f"utilities/{timestamp}_{context['dag'].dag_id}_metadata.json"
         GCSHook(gcp_conn_id=self.gcp_conn_id).upload(
             bucket_name=self.gcs_bucket, object_name=object_name,
             data=''.join(json.dumps(row) + '\n' for row in rows),

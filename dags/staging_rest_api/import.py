@@ -10,7 +10,14 @@ from utilities.bigquery import CreateTablesOperator, DeltaLoadTableOperator, MET
 from utilities.validation import BigQueryDataValidationOperator
 from utilities.rest_api import RestAPIToGCSOperator, ConsolidateExtractionMetadataOperator
 
-DAG_DIR = Path(__file__).resolve().parent
+DAG_FILE = Path(__file__).resolve()
+DAG_DIR = DAG_FILE.parent
+PROJECT_ROOT = next(
+    parent
+    for parent in DAG_FILE.parents
+    if (parent / 'dags').is_dir() and (parent / 'src').is_dir()
+)
+DAG_ID = '_'.join(DAG_FILE.relative_to(PROJECT_ROOT).with_suffix('').parts)
 CONFIG_PATH = DAG_DIR / 'config' / 'config.yml'
 GCS_BUCKET = 'subscription-analytics-raw'
 with CONFIG_PATH.open(encoding='utf-8') as stream:
@@ -25,7 +32,7 @@ tmp_schemas = {
 defaults = config['dag_defaults'].copy()
 defaults['start_date'] = pendulum.parse(defaults['start_date'])
 
-with DAG(dag_id='staging_rest_api',
+with DAG(dag_id=DAG_ID,
          params={**config, 'gcs_bucket': GCS_BUCKET},
          **defaults) as dag:
          
@@ -74,7 +81,6 @@ with DAG(dag_id='staging_rest_api',
         task_id='consolidate_extraction_metadata',
         extraction_task_ids=[task.task_id for task in extract_tasks.values()],
         gcs_bucket='{{ params.gcs_bucket }}',
-        name=config['name'],
     )
     for extract_task in extract_tasks.values():
         extract_task >> consolidate_metadata
@@ -87,7 +93,7 @@ with DAG(dag_id='staging_rest_api',
         ],
         destination_project_dataset_table=(
             f"{config['project_id']}.{config['datasets']['utilities']}."
-            f"{{{{ data_interval_end | ts_nodash }}}}_{dag.dag_id}_{config['name']}_metadata"
+            f"{{{{ data_interval_end | ts_nodash }}}}_{dag.dag_id}_metadata"
         ),
         source_format='NEWLINE_DELIMITED_JSON',
         schema_fields=METADATA_SCHEMA,

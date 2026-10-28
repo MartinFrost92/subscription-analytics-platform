@@ -20,7 +20,6 @@ Detail requests run in bounded batches using `max_workers`, with a shared
 `requests_per_second` limit per extraction task. Independent tasks have separate limits.
 
 ```yaml
-name: subscription_api
 connection_id: synthetic_api
 extraction_settings:
   max_workers: 10
@@ -54,10 +53,10 @@ A configured JSON path that does not exist raises a parsing error.
 
 Extraction pushes a list of `{name, expected_rows}` objects to the
 `extraction_metadata` XCom key. Create one
-`ConsolidateExtractionMetadataOperator(extraction_task_ids=..., gcs_bucket=...,
-name=...)` per DAG and set each extraction task as its upstream dependency.
+`ConsolidateExtractionMetadataOperator(extraction_task_ids=..., gcs_bucket=...)`
+per DAG and set each extraction task as its upstream dependency.
 It writes one JSONL file under
-`utilities/<data_interval_end as ts_nodash>_<dag_id>_<name>_metadata.json`,
+`utilities/<data_interval_end as ts_nodash>_<dag_id>_metadata.json`,
 containing one row per endpoint. The `.json` extension follows the metadata
 naming convention; load it using BigQuery's `NEWLINE_DELIMITED_JSON` format
 with `name STRING` and nullable `expected_rows INTEGER`.

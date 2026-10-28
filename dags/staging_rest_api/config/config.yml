@@ -6,7 +6,7 @@ dag_defaults:
   start_date: "2026-10-26"
   catchup: false
   tags:
-    - 'REST API'
+    - 'Run me first'
 
 project_id: 'healthy-pager-398915'
 
@@ -17,10 +17,11 @@ datasets:
   utilities: 'utilities'
 
 connection_id: 'synthetic_api'
-name: 'subscription_api'
+
 extraction_settings:
   max_workers: 100
   requests_per_second: 1000
+  
 end_points:
   - {
       'name': 'customers', 

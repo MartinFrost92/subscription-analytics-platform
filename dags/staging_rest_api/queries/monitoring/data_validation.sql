@@ -8,7 +8,7 @@ WITH totals AS (
         ) AS NUMERIC) AS output_value,
         CAST((
             SELECT expected_rows
-            FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_{{ params.name }}_metadata`
+            FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_metadata`
             WHERE name = '{{ endpoint.name }}'
         ) AS NUMERIC) AS expected_rows
     {% if not loop.last %}UNION ALL{% endif %}
