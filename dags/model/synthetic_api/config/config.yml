@@ -1,0 +1,35 @@
+dag_defaults:
+  description: 'Current dimensions and incremental subscription/revenue facts.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  max_active_runs: 1
+  tags: ['Run me last!']
+
+project_id: healthy-pager-398915
+
+datasets:
+  transform: transform
+  model: model
+  utilities: utilities
+
+wait_for_dags:
+  - external_dag_id: transform_synthetic_api_subscriptions
+
+full_load_tables:
+  - name: dim_customer
+  - name: dim_product
+  - name: dim_subscription
+  - name: dim_invoice
+  - name: dim_date
+
+delta_load_tables:
+  - name: fact_revenue
+    depends_on: [dim_date, dim_customer, dim_product, dim_subscription, dim_invoice]
+  - name: fact_subscription_inventory
+    depends_on: [dim_date, dim_customer, dim_product, dim_subscription]
+
+variables:
+  date_window: 7

@@ -1,0 +1,41 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_customer",
+        "schema_fields": {% include "schemas/dim_customer.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_product",
+        "schema_fields": {% include "schemas/dim_product.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_subscription",
+        "schema_fields": {% include "schemas/dim_subscription.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_invoice",
+        "schema_fields": {% include "schemas/dim_invoice.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "dim_date",
+        "schema_fields": {% include "schemas/dim_date.schema.json" %}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "fact_revenue",
+        "schema_fields": {% include "schemas/fact_revenue.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["customer_key", "subscription_key"]}
+    },
+    {
+        "dataset_id": "{{ params.datasets.model }}",
+        "table_id": "fact_subscription_inventory",
+        "schema_fields": {% include "schemas/fact_subscription_inventory.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["customer_key", "subscription_key"]}
+    }
+]

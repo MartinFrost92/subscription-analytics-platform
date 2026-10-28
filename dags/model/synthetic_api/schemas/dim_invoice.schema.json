@@ -1,0 +1,32 @@
+[
+    {
+        "name": "invoice_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "invoice_number",
+        "type": "STRING",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "start_date",
+        "type": "DATE",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "stop_date",
+        "type": "DATE",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "charge",
+        "type": "NUMERIC",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "discount",
+        "type": "NUMERIC",
+        "mode": "REQUIRED"
+    }
+]

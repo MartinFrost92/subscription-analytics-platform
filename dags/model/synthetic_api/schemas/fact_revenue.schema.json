@@ -1,0 +1,37 @@
+[
+    {
+        "name": "date",
+        "type": "DATE",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "customer_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "product_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "subscription_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "invoice_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "daily_revenue",
+        "type": "NUMERIC",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED"
+    }
+]

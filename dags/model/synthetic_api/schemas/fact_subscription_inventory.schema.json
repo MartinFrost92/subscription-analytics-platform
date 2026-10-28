@@ -1,0 +1,8 @@
+[
+    {"name": "date", "type": "DATE", "mode": "REQUIRED"},
+    {"name": "customer_key", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "product_key", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "subscription_key", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "is_sale", "type": "BOOLEAN", "mode": "REQUIRED"},
+    {"name": "updated_at", "type": "DATE", "mode": "REQUIRED"}
+]

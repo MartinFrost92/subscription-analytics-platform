@@ -10,13 +10,13 @@ dag_defaults:
 
 project_id: healthy-pager-398915
 
-wait_for_dags:
-  - external_dag_id: 'staging_synthetic_subscription_api_import'
-
 datasets:
   staging: staging
   transform: transform
   utilities: utilities
+
+wait_for_dags:
+  - external_dag_id: 'staging_synthetic_subscription_api_import'
 
 delta_load_tables:
   - {'name': 'invoice_revenue', 'depends_on': null}

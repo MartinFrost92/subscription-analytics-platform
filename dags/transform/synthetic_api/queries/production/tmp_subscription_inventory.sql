@@ -30,7 +30,7 @@ SELECT
     product,
     current_status,
     updated_at,
-    'Sale' AS event_type
+    TRUE AS is_sale
 FROM subscription_details
 
 UNION ALL
@@ -44,6 +44,6 @@ SELECT
     product,
     current_status,
     updated_at,
-    'Cancellation' AS event_type
+    FALSE AS is_sale
 FROM subscription_details
 WHERE stop_date IS NOT NULL

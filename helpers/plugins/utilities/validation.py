@@ -57,24 +57,16 @@ class BigQueryDataValidationOperator(BaseOperator):
             output_value = row["output_value"]
             source_value = row["source_value"]
             diff = row["diff"]
-            if test_name is None or output_value is None or source_value is None:
-                failures.append(f"Data check for {test_name} failed: NULL validation value.")
-            elif source_value == 0 and output_value != 0:
-                failures.append(
-                    f"Data check for {test_name} failed: percentage difference is undefined "
-                    "because source_value is zero and output_value is nonzero."
-                )
-            elif source_value == 0 and output_value == 0:
-                # Both totals being zero defines a zero difference, even if SQL returned NULL.
-                continue
-            elif diff is None:
-                failures.append(f"Data check for {test_name} failed: NULL percentage difference.")
-            elif not isinstance(diff, Decimal) or not diff.is_finite():
-                failures.append(f"Data check for {test_name} failed: diff must be a finite Decimal.")
-            elif diff.copy_abs() > self.tolerance:
-                failures.append(f"Data check for {test_name} failed by {diff}%.")
+            failed = (
+                test_name is None or output_value is None or source_value is None
+                or (source_value == 0 and output_value != 0)
+                or not isinstance(diff, Decimal) or not diff.is_finite()
+                or diff.copy_abs() > self.tolerance
+            )
+            if failed:
+                difference = format(diff, 'f') if isinstance(diff, Decimal) else 'NULL'
+                failures.append(f"{test_name} failed with diff {difference}%")
         if count == 0:
             raise AirflowException("Validation SQL returned no results.")
         if failures:
             raise AirflowException("\n".join(failures))
-        self.log.info("All %s data checks passed.", count)

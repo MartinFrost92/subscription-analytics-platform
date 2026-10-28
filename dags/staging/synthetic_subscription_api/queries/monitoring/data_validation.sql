@@ -2,15 +2,15 @@ WITH totals AS (
     {% for endpoint in params.end_points %}
     SELECT
         '{{ endpoint.name }}_row_count' AS test_name,
-        CAST((
-            SELECT COUNT(*)
+        (
+            SELECT CAST(COUNT(*) AS NUMERIC)
             FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_{{ endpoint.name }}`
-        ) AS NUMERIC) AS output_value,
-        CAST((
-            SELECT expected_rows
+        ) AS output_value,
+        (
+            SELECT CAST(expected_rows AS NUMERIC)
             FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_metadata`
             WHERE name = '{{ endpoint.name }}'
-        ) AS NUMERIC) AS expected_rows
+        ) AS expected_rows
     {% if not loop.last %}UNION ALL{% endif %}
     {% endfor %}
 ),
@@ -26,8 +26,7 @@ SELECT
     output_value,
     source_value,
     CASE
-        WHEN source_value = 0 AND output_value = 0 THEN NUMERIC '0'
-        WHEN source_value = 0 THEN NULL
-        ELSE SAFE_DIVIDE(output_value - source_value, source_value) * NUMERIC '100'
+        WHEN output_value = source_value THEN 0
+        ELSE SAFE_DIVIDE(output_value - source_value, source_value) * 100
     END AS diff
 FROM comparison

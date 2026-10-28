@@ -43,22 +43,25 @@ class ValidationTests(unittest.TestCase):
     def test_failure_preserves_sign_and_precision(self):
         with self.assertRaises(AirflowException) as caught:
             self.run_check([result_row("-0.033333")])
-        self.assertEqual(str(caught.exception), "Data check for totals failed by -0.033333%.")
+        self.assertEqual(str(caught.exception), "totals failed with diff -0.033333%")
 
     def test_multiple_failures(self):
         with self.assertRaises(AirflowException) as caught:
             self.run_check([result_row("0.000000101", name="first"),
                             result_row("0"), result_row("-1", name="last")])
         self.assertEqual(str(caught.exception),
-                         "Data check for first failed by 1.01E-7%.\n"
-                         "Data check for last failed by -1%.")
+                         "first failed with diff 0.000000101%\n"
+                         "last failed with diff -1%")
 
     def test_both_zero(self):
-        self.run_check([result_row(None, source="0", output="0"),
-                        result_row("0", source="0", output="0")])
+        self.run_check([result_row("0", source="0", output="0")])
+
+    def test_null_diff_fails_even_for_zero_totals(self):
+        with self.assertRaisesRegex(AirflowException, "totals failed with diff NULL%"):
+            self.run_check([result_row(None, source="0", output="0")])
 
     def test_zero_source(self):
-        with self.assertRaisesRegex(AirflowException, "percentage difference is undefined"):
+        with self.assertRaisesRegex(AirflowException, "totals failed with diff NULL%"):
             self.run_check([result_row(None, source="0", output="1")])
 
     def test_nulls(self):
@@ -66,7 +69,7 @@ class ValidationTests(unittest.TestCase):
             with self.subTest(column=column):
                 row = result_row()
                 row[column] = None
-                with self.assertRaisesRegex(AirflowException, "NULL"):
+                with self.assertRaisesRegex(AirflowException, "failed with diff"):
                     self.run_check([row])
 
     def test_empty(self):

@@ -1,0 +1,27 @@
+[
+    {
+        "name": "customer_key",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "account_id",
+        "type": "STRING",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "account_name",
+        "type": "STRING",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "account_country",
+        "type": "STRING",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "created_at",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED"
+    }
+]

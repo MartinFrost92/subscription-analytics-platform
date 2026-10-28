@@ -1,43 +1,12 @@
-WITH subscription_details AS (
-    SELECT
-        subscriptions.subscription_id,
-        subscriptions.account_id,
-        subscriptions.start_date,
-        subscriptions.stop_date,
-        customers.name AS account_name,
-        customers.country AS account_country,
-        subscriptions.product,
-        subscriptions.status AS current_status,
-        GREATEST(
-            COALESCE(customers.updated_at, subscriptions.updated_at),
-            subscriptions.updated_at
-        ) AS updated_at
-    FROM `{{ params.project_id }}.{{ params.datasets.staging }}.subscriptions` AS subscriptions
-    LEFT JOIN `{{ params.project_id }}.{{ params.datasets.staging }}.customers` AS customers USING (account_id)
-)
-SELECT
-    start_date AS date,
-    account_id,
-    subscription_id,
-    account_name,
-    account_country,
-    product,
-    current_status,
-    updated_at,
-    'Sale' AS event_type
-FROM subscription_details
+DELETE FROM `{{ params.project_id }}.{{ params.datasets.transform }}.subscription_inventory`
+WHERE subscription_id IN (
+    SELECT subscription_id
+    FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.tmp_subscription_inventory`
+);
 
-UNION ALL
-
-SELECT
-    stop_date AS date,
-    account_id,
-    subscription_id,
-    account_name,
-    account_country,
-    product,
-    current_status,
-    updated_at,
-    'Cancellation' AS event_type
-FROM subscription_details
-WHERE stop_date IS NOT NULL
+INSERT INTO `{{ params.project_id }}.{{ params.datasets.transform }}.subscription_inventory`
+    (date, account_id, subscription_id, account_name, account_country,
+     product, current_status, updated_at, is_sale)
+SELECT date, account_id, subscription_id, account_name, account_country,
+       product, current_status, updated_at, is_sale
+FROM `{{ params.project_id }}.{{ params.datasets.utilities }}.tmp_subscription_inventory`;
