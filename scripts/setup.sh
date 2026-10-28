@@ -2,6 +2,27 @@
 set -euo pipefail
 
 die() { printf 'Setup failed: %s\n' "$*" >&2; exit 1; }
+if command -v gcloud >/dev/null 2>&1; then
+    gcloud_cli=gcloud
+elif command -v gcloud.cmd >/dev/null 2>&1; then
+    gcloud_cli=gcloud.cmd
+else
+    die 'Install Google Cloud CLI first: https://cloud.google.com/sdk/docs/install (Windows: winget install --id Google.CloudSDK --exact). Reopen your terminal afterward.'
+fi
+"$gcloud_cli" --version >/dev/null 2>&1 || die 'Google Cloud CLI could not start. Repair its installation, including bundled Python, and reopen your terminal.'
+printf 'Checking Google Application Default Credentials...\n'
+"$gcloud_cli" auth application-default print-access-token >/dev/null || die "Google authentication is missing or invalid. Run: $gcloud_cli auth application-default login, then rerun setup."
+gcloud_config_dir=$("$gcloud_cli" info --format='value(config.paths.global_config_dir)')
+gcloud_config_dir=${gcloud_config_dir//$'\r'/}
+# Windows gcloud returns a Windows path even when called from Git Bash or WSL.
+if command -v cygpath >/dev/null 2>&1; then
+    gcloud_config_dir=$(cygpath -u "$gcloud_config_dir")
+elif [[ "$gcloud_config_dir" =~ ^[A-Za-z]: ]] && command -v wslpath >/dev/null 2>&1; then
+    gcloud_config_dir=$(wslpath -u "$gcloud_config_dir")
+fi
+adc_path="$gcloud_config_dir/application_default_credentials.json"
+[[ -f "$adc_path" ]] || die "Google ADC file was not found. Run: $gcloud_cli auth application-default login, then rerun setup."
+
 command -v docker >/dev/null 2>&1 || die 'Install Docker with Docker Compose v2 first.'
 docker compose version >/dev/null 2>&1 || die 'Docker Compose v2 is required.'
 docker info >/dev/null 2>&1 || die 'Start Docker (Linux containers) and check docker info.'
@@ -11,10 +32,11 @@ docker compose up --help | grep -q -- '--wait-timeout' || die 'Update Docker Com
 cd "$(dirname "${BASH_SOURCE[0]}")/../container"
 # Keep Git Bash from converting container paths to Windows paths.
 export MSYS_NO_PATHCONV=1
-compose=(docker compose -f compose.yaml)
-if [[ -f secrets/google-adc.json ]]; then
-    compose+=(-f compose.bigquery.yaml)
+mkdir -p secrets
+if [[ ! -f secrets/google-adc.json ]] || ! [[ "$adc_path" -ef secrets/google-adc.json ]]; then
+    cp "$adc_path" secrets/google-adc.json
 fi
+compose=(docker compose -f compose.yaml -f compose.bigquery.yaml)
 
 if [[ ! -e .env ]]; then
     printf 'Creating container/.env with random local secrets...\n'
@@ -85,14 +107,8 @@ if ! "${compose[@]}" up -d --build --wait --wait-timeout 300; then
 fi
 "${compose[@]}" exec -T metadata-db sh -c 'exec psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d airflow -tAc "SELECT 1"' >/dev/null
 "${compose[@]}" ps -a
-printf '\nLocal setup complete. Airflow address (no sign-in required):\n'
-"${compose[@]}" port airflow-api-server 8080
-
-if [[ -f secrets/google-adc.json ]]; then
-    if ! "${compose[@]}" exec -T airflow-scheduler python /opt/airflow/scripts/verify-bigquery.py; then
-        printf '\nGoogle Cloud verification failed. Check ADC login, permissions and datasets using container/BIGQUERY.md, then rerun setup.\n' >&2
-        exit 1
-    fi
-else
-    printf '\nGoogle Cloud is optional and is not enabled. For GCS/BigQuery access, run gcloud auth application-default login, copy ADC to container/secrets/google-adc.json, then rerun setup. See container/BIGQUERY.md for project and dataset configuration.\n'
+if ! "${compose[@]}" exec -T airflow-scheduler python /opt/airflow/scripts/verify-bigquery.py; then
+    die 'Google Cloud verification failed. Check ADC login, permissions and datasets using container/BIGQUERY.md, then rerun setup.'
 fi
+printf '\nSetup complete. Airflow address (no sign-in required):\n'
+"${compose[@]}" port airflow-api-server 8080
