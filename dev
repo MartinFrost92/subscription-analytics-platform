@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/container"
+compose=(docker compose -f compose.yaml)
+if [[ -f secrets/google-adc.json ]]; then
+    compose+=(-f compose.bigquery.yaml)
+fi
+
+case "${1:-}" in
+    start)  "${compose[@]}" up -d --wait ;;
+    stop)   "${compose[@]}" stop ;;
+    status) "${compose[@]}" ps -a ;;
+    logs)   "${compose[@]}" logs --tail 100 -f ;;
+    *) printf 'Usage: ./dev {start|stop|status|logs}\n'; exit 1 ;;
+esac

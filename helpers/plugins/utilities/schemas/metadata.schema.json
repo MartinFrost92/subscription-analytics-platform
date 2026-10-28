@@ -1,0 +1,12 @@
+[
+    {
+        "name": "name",
+        "type": "STRING",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "expected_rows",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+    }
+]

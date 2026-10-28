@@ -1,10 +1,16 @@
 """Create all tables from one DAG-relative, templated definition file."""
 import json
 import os
+from pathlib import Path
 
 from airflow.sdk import BaseOperator
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+
+
+METADATA_SCHEMA = json.loads(
+    (Path(__file__).parent / 'schemas' / 'metadata.schema.json').read_text(encoding='utf-8')
+)
 
 
 class CreateTablesOperator(BaseOperator):

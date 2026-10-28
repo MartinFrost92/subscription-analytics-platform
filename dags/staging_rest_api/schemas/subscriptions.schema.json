@@ -34,5 +34,11 @@
         "type":  "STRING",
         "mode":  "REQUIRED",
         "description":  "Subscription status: active or cancelled."
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Data interval end date when the row was last merged into staging."
     }
 ]

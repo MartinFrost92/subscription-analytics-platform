@@ -17,6 +17,10 @@ datasets:
   utilities: 'utilities'
 
 connection_id: 'synthetic_api'
+name: 'subscription_api'
+extraction_settings:
+  max_workers: 100
+  requests_per_second: 1000
 end_points:
   - {
       'name': 'customers', 
@@ -32,6 +36,7 @@ end_points:
     } 
   - {
       'name': 'invoices', 
+      'expected_rows_header': 'X-Total-Count',
       'request': 'GET', 
       'path': 'invoices', 
       'detail_path': 'invoices/{id}',
