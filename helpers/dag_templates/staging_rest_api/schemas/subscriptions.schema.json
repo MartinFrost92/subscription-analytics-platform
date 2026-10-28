@@ -1,0 +1,44 @@
+[
+    {
+        "name":  "subscription_id",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Unique subscription identifier."
+    },
+    {
+        "name":  "account_id",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Customer account identifier corresponding to customers.account_id."
+    },
+    {
+        "name":  "product",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Subscribed product."
+    },
+    {
+        "name":  "start_date",
+        "type":  "DATE",
+        "mode":  "REQUIRED",
+        "description":  "Subscription start date."
+    },
+    {
+        "name":  "stop_date",
+        "type":  "DATE",
+        "mode":  "NULLABLE",
+        "description":  "Subscription end date; null for active subscriptions."
+    },
+    {
+        "name":  "status",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Subscription status: active or cancelled."
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Data interval end date when the row was last merged into staging."
+    }
+]

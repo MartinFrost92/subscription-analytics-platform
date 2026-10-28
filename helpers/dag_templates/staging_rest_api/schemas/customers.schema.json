@@ -1,0 +1,32 @@
+[
+    {
+        "name":  "account_id",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Unique customer account identifier."
+    },
+    {
+        "name":  "name",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Customer full name."
+    },
+    {
+        "name":  "country",
+        "type":  "STRING",
+        "mode":  "REQUIRED",
+        "description":  "Two-letter customer country code."
+    },
+    {
+        "name":  "created_at",
+        "type":  "TIMESTAMP",
+        "mode":  "REQUIRED",
+        "description":  "UTC timestamp when the customer account was created."
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Data interval end date when the row was last merged into staging."
+    }
+]

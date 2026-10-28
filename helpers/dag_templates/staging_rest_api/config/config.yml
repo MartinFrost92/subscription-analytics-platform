@@ -1,0 +1,50 @@
+dag_defaults:
+  description: 'This is a placeholder DAG for the REST API staging.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Run me first'
+
+project_id: 'healthy-pager-398915'
+
+datasets:
+  staging: 'staging'
+  transform: 'transform'
+  model: 'model'
+  utilities: 'utilities'
+
+connection_id: 'synthetic_api'
+
+extraction_settings:
+  max_workers: 100
+  requests_per_second: 1000
+  
+end_points:
+  - {
+      'name': 'customers', 
+      'request': 'GET', 
+      'path': 'customers', 
+      'detail_path': 'customers/{id}',
+    }
+  - {
+      'name': 'subscriptions', 
+      'request': 'GET', 
+      'path': 'subscriptions', 
+      'detail_path': 'subscriptions/{id}'
+    } 
+  - {
+      'name': 'invoices', 
+      'expected_rows_header': 'X-Total-Count',
+      'request': 'GET', 
+      'path': 'invoices', 
+      'detail_path': 'invoices/{id}',
+      'pagination': {
+        'strategy': 'page',
+        'identifier': 'page',
+        'params':
+          {'page_size': 1000}
+        }
+    }

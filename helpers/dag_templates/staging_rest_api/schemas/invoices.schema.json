@@ -1,0 +1,50 @@
+[
+    {
+        "name":  "invoice_number",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Unique invoice identifier."
+    },
+    {
+        "name":  "account_id",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Customer account identifier corresponding to customers.account_id."
+    },
+    {
+        "name":  "subscription_id",
+        "type":  "INTEGER",
+        "mode":  "REQUIRED",
+        "description":  "Subscription identifier corresponding to subscriptions.subscription_id."
+    },
+    {
+        "name":  "charge",
+        "type":  "NUMERIC",
+        "mode":  "REQUIRED",
+        "description":  "Gross charge in EUR before discount."
+    },
+    {
+        "name":  "discount",
+        "type":  "NUMERIC",
+        "mode":  "REQUIRED",
+        "description":  "Discount amount in EUR, deducted from charge."
+    },
+    {
+        "name":  "start_date",
+        "type":  "DATE",
+        "mode":  "REQUIRED",
+        "description":  "Inclusive start date of the billed period."
+    },
+    {
+        "name":  "stop_date",
+        "type":  "DATE",
+        "mode":  "REQUIRED",
+        "description":  "Exclusive end date of the billed period."
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Data interval end date when the row was last merged into staging."
+    }
+]
