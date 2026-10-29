@@ -1,0 +1,28 @@
+dag_defaults:
+  description: 'Transform Nationalbanken exchange rates into currency conversion pairs.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Run me second!'
+
+project_id: healthy-pager-398915
+
+datasets:
+  staging: staging
+  transform: transform
+  utilities: utilities
+
+wait_for_dags:
+  - external_dag_id: 'staging_national_banken_import'
+    time_delta:
+      hours: 1
+
+delta_load_tables:
+  - {'name': 'exchange_rates', 'depends_on': null}
+
+variables:
+  date_window: 7
+

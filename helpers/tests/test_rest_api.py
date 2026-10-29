@@ -15,10 +15,21 @@ from xml.etree.ElementTree import ParseError
 from airflow.sdk import Connection
 from utilities.rest_api import (
     ConsolidateExtractionMetadataOperator, RestAPIToGCSOperator, _RateLimiter,
+    normalize_field_names,
 )
 
 
 class RestTests(unittest.TestCase):
+    def test_normalize_nested_field_names_preserves_values(self):
+        self.assertEqual(
+            normalize_field_names({'a-b': [{'@code': 'EUR', '#text': 'a-b@c'}], 'ok': None}),
+            {'a_b': [{'_code': 'EUR', '_text': 'a-b@c'}], 'ok': None},
+        )
+
+    def test_normalize_field_name_collision_fails(self):
+        with self.assertRaisesRegex(ValueError, 'Field name collision'):
+            normalize_field_names({'a-b': 1, 'a.b': 2})
+
     def operator(self, **kwargs):
         operator = RestAPIToGCSOperator(
             task_id='group.extract_customers', connection_id='api', config_path='unused',
@@ -129,14 +140,14 @@ class RestTests(unittest.TestCase):
                '<rate code="USD"><value>6.85</value></rate></rates>')
         uploads, ti, _, _ = self.execute_extraction([endpoint], [(xml, {}, 200)])
         self.assertEqual([json.loads(line) for line in next(iter(uploads.values())).splitlines()],
-                         [{'@code': 'EUR', 'value': '7.46'}, {'@code': 'USD', 'value': '6.85'}])
+                         [{'_code': 'EUR', 'value': '7.46'}, {'_code': 'USD', 'value': '6.85'}])
         ti.xcom_push.assert_called_once_with(key='extraction_metadata',
                                            value=[{'name': 'rates', 'expected_rows': 20}])
 
     def test_xml_singleton_and_empty_record_selection(self):
         for xml, path, expected in [
             ('<rates><rate code="EUR">7.46</rate></rates>', 'rates.rate',
-             [{'@code': 'EUR', '#text': '7.46'}]),
+             [{'_code': 'EUR', '_text': '7.46'}]),
             ('<rates/>', 'rates', []),
         ]:
             with self.subTest(xml=xml):
@@ -151,7 +162,7 @@ class RestTests(unittest.TestCase):
             endpoints, [('<rates><rate code="EUR"/></rates>', {}, 200), ([{'id': 1}], {}, 200)],
             config_response_format='xml')
         records = [[json.loads(line) for line in text.splitlines()] for text in uploads.values()]
-        self.assertEqual(records, [[{'@code': 'EUR'}], [{'id': 1}]])
+        self.assertEqual(records, [[{'_code': 'EUR'}], [{'id': 1}]])
 
     def test_xml_pagination_and_detail_requests(self):
         endpoint = dict(name='items', path='items', response_format='xml',
@@ -163,8 +174,8 @@ class RestTests(unittest.TestCase):
                      ('<item id="2"><name>second</name></item>', {}, 200)]
         uploads, _, _, _ = self.execute_extraction([endpoint], responses)
         self.assertEqual([json.loads(line) for line in next(iter(uploads.values())).splitlines()],
-                         [{'item': {'@id': '1', 'name': 'first'}},
-                          {'item': {'@id': '2', 'name': 'second'}}])
+                         [{'item': {'_id': '1', 'name': 'first'}},
+                          {'item': {'_id': '2', 'name': 'second'}}])
 
     def test_invalid_xml_and_response_format_fail(self):
         with self.assertRaises(ParseError):

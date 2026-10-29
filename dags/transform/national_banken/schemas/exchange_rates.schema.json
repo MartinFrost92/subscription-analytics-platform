@@ -1,0 +1,6 @@
+[
+    {"name": "from_currency", "type": "STRING", "mode": "REQUIRED"},
+    {"name": "to_currency", "type": "STRING", "mode": "REQUIRED"},
+    {"name": "conversion_rate", "type": "NUMERIC", "mode": "REQUIRED"},
+    {"name": "updated_at", "type": "DATE", "mode": "REQUIRED"}
+]

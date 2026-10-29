@@ -25,6 +25,21 @@ def json_path(value, path):
         value = value[int(part)] if isinstance(value, list) else value[part]
     return value
 
+def normalize_field_names(value):
+    """Replace special characters in record keys without losing colliding fields."""
+    if isinstance(value, list):
+        return [normalize_field_names(item) for item in value]
+    if isinstance(value, dict):
+        result = {}
+        for name, item in value.items():
+            normalized = re.sub(r'[^A-Za-z0-9_]', '_', name)
+            if normalized in result:
+                raise ValueError(f'Field name collision after normalization: {name!r} -> {normalized!r}')
+            result[normalized] = normalize_field_names(item)
+        return result
+    return value
+
+
 def xml_value(element):
     """Convert XML records to dictionaries, preserving attributes and repeats."""
     value = {'@' + name.rsplit('}', 1)[-1]: text for name, text in element.attrib.items()}
@@ -201,6 +216,7 @@ class RestAPIToGCSOperator(BaseOperator):
                     results = (executor.map(lambda item: self._detail(endpoint, item), batch)
                                if endpoint.get('detail_path') else batch)
                     for record in results:
+                        record = normalize_field_names(record)
                         output.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + '\n')
         return metadata
 

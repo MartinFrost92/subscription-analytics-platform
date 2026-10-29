@@ -1,38 +1,14 @@
 [
     {
         "dataset_id": "{{ params.datasets.utilities }}",
-        "table_id": "{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_customers",
-        "schema_fields": {% include "schemas/tmp_customers.schema.json" %}
-    },
-    {
-        "dataset_id": "{{ params.datasets.utilities }}",
-        "table_id": "{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_subscriptions",
-        "schema_fields": {% include "schemas/tmp_subscriptions.schema.json" %}
-    },
-    {
-        "dataset_id": "{{ params.datasets.utilities }}",
-        "table_id": "{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_invoices",
-        "schema_fields": {% include "schemas/tmp_invoices.schema.json" %}
+        "table_id": "{{ data_interval_end | ts_nodash }}_{{ dag.dag_id }}_exchange_rates",
+        "schema_fields": {% include "schemas/tmp_exchange_rates.schema.json" %}
     },
     {
         "dataset_id": "{{ params.datasets.staging }}",
-        "table_id": "customers",
-        "schema_fields": {% include "schemas/customers.schema.json" %},
+        "table_id": "exchange_rates",
+        "schema_fields": {% include "schemas/exchange_rates.schema.json" %},
         "timePartitioning": {"type": "DAY", "field": "updated_at"},
-        "clustering": {"fields": ["account_id"]}
-    },
-    {
-        "dataset_id": "{{ params.datasets.staging }}",
-        "table_id": "subscriptions",
-        "schema_fields": {% include "schemas/subscriptions.schema.json" %},
-        "timePartitioning": {"type": "DAY", "field": "updated_at"},
-        "clustering": {"fields": ["subscription_id"]}
-    },
-    {
-        "dataset_id": "{{ params.datasets.staging }}",
-        "table_id": "invoices",
-        "schema_fields": {% include "schemas/invoices.schema.json" %},
-        "timePartitioning": {"type": "DAY", "field": "updated_at"},
-        "clustering": {"fields": ["account_id", "subscription_id"]}
+        "clustering": {"fields": ["_code"]}
     }
 ]

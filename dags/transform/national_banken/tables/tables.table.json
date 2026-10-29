@@ -1,0 +1,9 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.transform }}",
+        "table_id": "exchange_rates",
+        "schema_fields": {% include "schemas/exchange_rates.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["from_currency", "to_currency"]}
+    }
+]

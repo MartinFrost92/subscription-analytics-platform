@@ -1,20 +1,26 @@
 [
     {
-        "name":  "code",
+        "name":  "_code",
         "type":  "STRING",
         "mode":  "REQUIRED",
         "description":  "Currency code from currency.code."
     },
     {
-        "name":  "description",
+        "name":  "_desc",
         "type":  "STRING",
         "mode":  "REQUIRED",
         "description":  "Currency description from currency.desc."
     },
     {
-        "name":  "rate",
+        "name":  "_rate",
         "type":  "NUMERIC",
         "mode":  "REQUIRED",
         "description":  "Published exchange rate from currency.rate."
+    },
+    {
+        "name": "updated_at",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Data interval end date when the row was last merged into staging."
     }
 ]

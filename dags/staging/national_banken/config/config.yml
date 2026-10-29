@@ -2,7 +2,7 @@ dag_defaults:
   description: 'This extracts current curerncy exchange rates from the national bank of Denmark.'
   default_args:
     owner: 'Martin Frost Hamann'
-  schedule: "0 5 * * *"
+  schedule: "0 4 * * *"
   start_date: "2026-10-26"
   catchup: false
   tags:
@@ -30,3 +30,4 @@ end_points:
       'response_format': 'xml',
       'records_path': 'exchangerates.dailyrates.currency',
     }
+

@@ -20,6 +20,7 @@ SELECT
     stop_date,
     charge,
     discount,
+    'EUR' AS currency,
     CASE
         WHEN revenue_date = DATE_SUB(stop_date, INTERVAL 1 DAY)
             THEN net_revenue - daily_amount * (number_of_days - 1)
