@@ -1,0 +1,7 @@
+[
+    {"name": "name", "type": "STRING", "mode": "REQUIRED", "description": "First name returned by the API."},
+    {"name": "country_id", "type": "STRING", "mode": "REQUIRED", "description": "Country code returned by the API."},
+    {"name": "count", "type": "INTEGER", "mode": "NULLABLE", "description": "Number of samples reported by the API."},
+    {"name": "gender", "type": "STRING", "mode": "NULLABLE", "description": "Predicted gender; null when unknown."},
+    {"name": "probability", "type": "NUMERIC", "mode": "NULLABLE", "description": "Probability reported by the API; null when unknown."}
+]

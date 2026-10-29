@@ -1,0 +1,39 @@
+dag_defaults:
+  description: 'This extracts current curerncy exchange rates from the national bank of Denmark.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Run me first'
+
+project_id: 'healthy-pager-398915'
+
+datasets:
+  staging: 'staging'
+  transform: 'transform'
+  model: 'model'
+  utilities: 'utilities'
+
+connection_id: 'genderize_api'
+
+wait_for_dags:
+  - external_dag_id: 'staging_synthetic_subscription_api_import'
+
+extraction_settings:
+  max_workers: 10
+  requests_per_second: 100
+  
+end_points:
+  - {
+      'name': 'names', 
+      'request': 'GET', 
+      'path': '', 
+      'input_sql': 'queries/production/unchecked_names.sql',
+        'request_params': {
+        'name': 'first_name',
+        'country_id': 'country_id'
+      }
+    }
+

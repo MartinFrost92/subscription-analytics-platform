@@ -20,6 +20,85 @@ from utilities.rest_api import (
 
 
 class RestTests(unittest.TestCase):
+    def test_sql_requests_map_rows_and_write_normalized_responses(self):
+        operator = self.operator(max_workers=1)
+        endpoint = dict(name='gender', path='predict', input_sql='queries/names.sql',
+                        params={'language': 'en', 'name': 'overridden'},
+                        request_params={'name': 'first_name', 'country_id': 'country'},
+                        records_path='result')
+        rows = [{'first_name': 'Noah', 'country': 'DK'},
+                {'first_name': 'Anna', 'country': 'DE'}]
+        with TemporaryDirectory() as directory, ThreadPoolExecutor(max_workers=1) as executor:
+            path = Path(directory, 'gender.jsonl')
+            with patch.object(operator, '_input_rows', return_value=iter(rows)), \
+                    patch.object(operator, '_request', side_effect=[
+                        ({'result': {'name': 'Noah', 'gender': None, 'sample-count': 0}}, {}),
+                        ({'result': {'name': 'Anna', 'gender': 'female'}}, {}),
+                    ]) as request:
+                metadata = operator._extract_sql(endpoint, path, executor, {}, {})
+            self.assertEqual(metadata, {'name': 'gender', 'expected_rows': 2})
+            self.assertEqual([json.loads(line) for line in path.read_text().splitlines()], [
+                {'name': 'Noah', 'gender': None, 'sample_count': 0},
+                {'name': 'Anna', 'gender': 'female'},
+            ])
+            self.assertEqual([call.args[2] for call in request.call_args_list], [
+                {'language': 'en', 'name': 'Noah', 'country_id': 'DK'},
+                {'language': 'en', 'name': 'Anna', 'country_id': 'DE'},
+            ])
+
+    def test_sql_empty_input_and_invalid_rows(self):
+        operator = self.operator()
+        endpoint = dict(name='gender', path='predict', input_sql='queries/names.sql',
+                        request_params={'name': 'first_name'})
+        with TemporaryDirectory() as directory, ThreadPoolExecutor(max_workers=1) as executor:
+            path = Path(directory, 'gender.jsonl')
+            with patch.object(operator, '_input_rows', return_value=iter([])), \
+                    patch.object(operator, '_request') as request:
+                self.assertEqual(operator._extract_sql(endpoint, path, executor, {}, {}),
+                                 {'name': 'gender', 'expected_rows': 0})
+                self.assertEqual(path.read_text(), '')
+                request.assert_not_called()
+            for row, error in [({}, KeyError), ({'first_name': None}, ValueError)]:
+                with self.subTest(row=row), \
+                        patch.object(operator, '_input_rows', return_value=iter([row])), \
+                        patch.object(operator, '_request') as request:
+                    with self.assertRaises(error):
+                        operator._extract_sql(endpoint, path, executor, {}, {})
+                    request.assert_not_called()
+            with self.assertRaisesRegex(ValueError, 'cannot be combined'):
+                operator._extract_sql(dict(endpoint, pagination={'strategy': 'page'}),
+                                      path, executor, {}, {})
+
+    def test_sql_input_renders_dag_relative_query_and_uses_shared_connection(self):
+        operator = self.operator()
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'config').mkdir()
+            (root / 'queries').mkdir()
+            operator.config_path = str(root / 'config/config.yml')
+            (root / 'queries/names.sql').write_text(
+                "SELECT '{{ params.country }}' AS country", encoding='utf-8')
+            with patch('utilities.rest_api.BigQueryHook') as hook:
+                expected = hook.return_value.get_client.return_value.query.return_value.result.return_value
+                actual = operator._input_rows({'input_sql': 'queries/names.sql'},
+                                              {'params': {'country': 'DK'}}, {'project_id': 'project'})
+                self.assertIs(actual, expected)
+                hook.return_value.get_client.assert_called_once_with(project_id='project', location='EU')
+                hook.return_value.get_client.return_value.query.assert_called_once_with(
+                    "SELECT 'DK' AS country", location='EU')
+
+    def test_sql_mode_upload_and_metadata(self):
+        endpoint = dict(name='gender', path='predict', input_sql='queries/names.sql',
+                        request_params={'name': 'first_name'})
+        with patch.object(RestAPIToGCSOperator, '_input_rows',
+                          return_value=iter([{'first_name': 'Noah'}])):
+            uploads, ti, paths, _ = self.execute_extraction(
+                [endpoint], [({'name': 'Noah', 'gender': None}, {}, 200)])
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(json.loads(next(iter(uploads.values()))), {'name': 'Noah', 'gender': None})
+        ti.xcom_push.assert_called_once_with(key='extraction_metadata',
+                                           value=[{'name': 'gender', 'expected_rows': 1}])
+
     def test_normalize_nested_field_names_preserves_values(self):
         self.assertEqual(
             normalize_field_names({'a-b': [{'@code': 'EUR', '#text': 'a-b@c'}], 'ok': None}),

@@ -114,6 +114,44 @@ Schedules/logical dates must align; manual test runs need an appropriate
 logical date. Fictional upstream names are placeholders and cannot satisfy
 the dependency.
 
+## SQL-driven REST requests
+
+An endpoint can optionally use BigQuery rows instead of an API collection as
+its request inputs:
+
+```yaml
+end_points:
+  - name: name_gender
+    path: predict
+    request: GET
+    input_sql: queries/extraction/distinct_first_names.sql
+    request_params:
+      name: first_name
+      country_id: country
+```
+
+`input_sql` is a SQL file relative to the DAG folder, rendered with Airflow's
+runtime context (including `params` and interval dates). It runs using the
+operator's `gcp_conn_id`, the config's `project_id`, and `BIGQUERY_LOCATION`
+(default `EU`). Use SELECT SQL to return one row per desired request; filtering
+cached names and deduplication belong in that SQL.
+
+`request_params` maps API query-parameter names to SQL column names. Row values
+override static endpoint `params`. Missing columns and NULL mapped values fail
+the task. Rows are streamed in batches of at most `max_workers`; HTTP requests
+reuse existing authentication, concurrency, and rate limiting.
+
+Each response must be an object, optionally selected using `records_path`.
+Responses use the existing field-name normalization and JSONL/GCS output.
+Input columns are not automatically added to responses. SQL mode cannot be
+combined with pagination, detail requests, or API-reported totals. Its metadata
+`expected_rows` is the number of successfully processed input rows; empty input
+produces an empty JSONL file and zero expected rows. Failures propagate and
+prevent uploading that endpoint's file. Task retries rerun the SQL and requests;
+the operator does not maintain a persistent cache.
+
+Endpoints without `input_sql` keep their existing extraction behavior.
+
 ## Writing table data
 
 `FullLoadTableOperator(task_id=..., table_id=...)` reads

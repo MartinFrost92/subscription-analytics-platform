@@ -1,0 +1,9 @@
+[
+    {"name": "name", "type": "STRING", "mode": "REQUIRED", "description": "First name used for the API lookup."},
+    {"name": "country_id", "type": "STRING", "mode": "REQUIRED", "description": "ISO 3166-1 alpha-2 country code used for the lookup."},
+    {"name": "count", "type": "INTEGER", "mode": "NULLABLE", "description": "Number of samples reported by the API."},
+    {"name": "gender", "type": "STRING", "mode": "NULLABLE", "description": "Predicted gender; null when unknown or not yet fetched."},
+    {"name": "probability", "type": "NUMERIC", "mode": "NULLABLE", "description": "Probability reported by the API."},
+    {"name": "is_checked", "type": "BOOLEAN", "mode": "REQUIRED", "description": "False until an API response has been fetched, including unknown results."},
+    {"name": "updated_at", "type": "DATE", "mode": "REQUIRED", "description": "Data interval end date when the name was registered or API data was last merged."}
+]

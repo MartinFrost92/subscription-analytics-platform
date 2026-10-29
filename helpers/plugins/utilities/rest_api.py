@@ -4,6 +4,8 @@ from contextlib import nullcontext
 from copy import copy
 import json
 import math
+import os
+from itertools import islice
 from pathlib import Path
 import re
 from tempfile import TemporaryDirectory
@@ -17,6 +19,7 @@ import yaml
 from airflow.sdk import BaseOperator
 from airflow.providers.http.hooks.http import HttpHook
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 
 
 def json_path(value, path):
@@ -220,6 +223,52 @@ class RestAPIToGCSOperator(BaseOperator):
                         output.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + '\n')
         return metadata
 
+    def _input_rows(self, endpoint, context, config):
+        """Render DAG-relative SQL and stream its BigQuery result rows."""
+        root = Path(self.dag.folder) if self.has_dag() else Path(self.config_path).resolve().parent.parent
+        sql = (root / endpoint['input_sql']).read_text(encoding='utf-8')
+        sql = self.render_template(sql, context)
+        location = os.environ.get('BIGQUERY_LOCATION', 'EU')
+        hook = BigQueryHook(gcp_conn_id=self.gcp_conn_id, location=location, use_legacy_sql=False)
+        client = hook.get_client(project_id=config['project_id'], location=location)
+        return client.query(sql, location=location).result()
+
+    def _input_request(self, endpoint, row):
+        params = dict(endpoint.get('params', {}))
+        for parameter, column in endpoint['request_params'].items():
+            if row[column] is None:
+                raise ValueError(f'SQL request parameter {parameter!r} cannot be NULL')
+            params[parameter] = row[column]
+        payload, _ = self._request(
+            endpoint.get('request', 'GET'), urljoin(self._base_url, endpoint['path']), params,
+            response_format=endpoint.get('response_format', 'json'),
+        )
+        record = json_path(payload, endpoint.get('records_path'))
+        if not isinstance(record, dict):
+            raise ValueError('SQL-driven response must select a JSON object; configure records_path')
+        return record
+
+    def _extract_sql(self, endpoint, destination, executor, context, config):
+        if not isinstance(endpoint.get('request_params'), dict) or not endpoint['request_params']:
+            raise ValueError('input_sql requires a nonempty request_params mapping')
+        if any(endpoint.get(key) for key in (
+                'pagination', 'detail_path', 'expected_rows_header', 'expected_rows_path')):
+            raise ValueError('input_sql cannot be combined with pagination, detail requests, or API totals')
+        rows = iter(self._input_rows(endpoint, context, config))
+        count = 0
+        with destination.open('w', encoding='utf-8') as output:
+            while batch := list(islice(rows, self.max_workers)):
+                # Validate the whole batch before starting its requests.
+                for row in batch:
+                    for column in endpoint['request_params'].values():
+                        if row[column] is None:
+                            raise ValueError(f'SQL input column {column!r} cannot be NULL')
+                for record in executor.map(lambda row: self._input_request(endpoint, row), batch):
+                    output.write(json.dumps(normalize_field_names(record),
+                                            ensure_ascii=False, allow_nan=False) + '\n')
+                    count += 1
+        return {'name': endpoint['name'], 'expected_rows': count}
+
     def execute(self, context):
         config = yaml.safe_load(Path(self.config_path).read_text(encoding='utf-8'))
         endpoints = [
@@ -256,7 +305,10 @@ class RestAPIToGCSOperator(BaseOperator):
                 gcs = GCSHook(gcp_conn_id=self.gcp_conn_id)
                 for endpoint in endpoints:
                     path = Path(directory) / (endpoint['name'] + '.jsonl')
-                    metadata.append(self._extract(endpoint, path, executor))
+                    if endpoint.get('input_sql'):
+                        metadata.append(self._extract_sql(endpoint, path, executor, context, config))
+                    else:
+                        metadata.append(self._extract(endpoint, path, executor))
                     object_name = '/'.join(filter(None, (self.gcs_prefix.strip('/'), endpoint['name'], interval + '.jsonl')))
                     gcs.upload(bucket_name=self.gcs_bucket, object_name=object_name,
                                filename=str(path), mime_type='application/x-ndjson')
