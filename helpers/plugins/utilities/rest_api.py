@@ -284,6 +284,13 @@ class RestAPIToGCSOperator(BaseOperator):
             raise ValueError('Endpoint names must be unique and contain letters, digits, _ or -')
         hook = HttpHook(http_conn_id=self.connection_id)
         self._http_session = hook.get_conn()
+        # HttpHook treats unrecognized connection extras as headers. Reserve
+        # params for secret query parameters before any request is prepared.
+        connection_params = self._http_session.headers.pop('params', {})
+        if not isinstance(connection_params, dict):
+            self._http_session.close()
+            raise ValueError('HTTP connection extra.params must be an object')
+        self._http_session.params.update(connection_params)
         self._sessions = [self._http_session]
         self._local = threading.local()
         self._local.session = self._http_session

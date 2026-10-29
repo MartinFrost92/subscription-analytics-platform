@@ -116,6 +116,12 @@ the dependency.
 
 ## SQL-driven REST requests
 
+For secret query parameters, HTTP connection JSON may contain
+`"extra": {"params": {"apikey": "YOUR_API_KEY"}}`. The REST operator moves
+this mapping from HttpHook's default headers into session query parameters,
+including worker sessions. Other connection headers remain unchanged.
+Explicit request parameters override matching session parameters.
+
 An endpoint can optionally use BigQuery rows instead of an API collection as
 its request inputs:
 

@@ -20,6 +20,36 @@ from utilities.rest_api import (
 
 
 class RestTests(unittest.TestCase):
+    def test_connection_query_params_reach_sql_worker_requests(self):
+        from urllib.parse import parse_qs, urlsplit
+        endpoint = dict(name='gender', path='', input_sql='queries/names.sql',
+                        request_params={'name': 'first_name', 'country_id': 'country_id'})
+        prepared_requests = []
+        def observe(session, method, url, options):
+            prepared_requests.append(session.prepare_request(
+                requests.Request(method, url, params=options['params'])))
+        with patch.object(RestAPIToGCSOperator, '_input_rows', return_value=iter([
+                {'first_name': 'Noah', 'country_id': 'DK'},
+                {'first_name': 'Anna', 'country_id': 'DE'},
+        ])):
+            self.execute_extraction(
+                [endpoint], [({'name': 'Noah'}, {}, 200), ({'name': 'Anna'}, {}, 200)],
+                connection_extra={'params': {'apikey': 'test-only-key'}, 'X-API-Key': 'header-key'},
+                request_observer=observe,
+            )
+        self.assertEqual(len(prepared_requests), 2)
+        for request in prepared_requests:
+            query = parse_qs(urlsplit(request.url).query)
+            self.assertEqual(query['apikey'], ['test-only-key'])
+            self.assertIn(query['name'][0], ['Noah', 'Anna'])
+            self.assertNotIn('params', request.headers)
+            self.assertEqual(request.headers['X-API-Key'], 'header-key')
+
+    def test_invalid_connection_query_params_fail(self):
+        with self.assertRaisesRegex(ValueError, 'extra.params must be an object'):
+            self.execute_extraction([dict(name='names', path='')], [],
+                                    connection_extra={'params': 'invalid'})
+
     def test_sql_requests_map_rows_and_write_normalized_responses(self):
         operator = self.operator(max_workers=1)
         endpoint = dict(name='gender', path='predict', input_sql='queries/names.sql',
@@ -174,11 +204,14 @@ class RestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'JSON array'):
             self.pages(dict(name='customers', path='customers'), [({'unexpected': 1}, {})])
 
-    def execute_extraction(self, endpoints, responses, config_response_format=None, **kwargs):
+    def execute_extraction(self, endpoints, responses, config_response_format=None,
+                           connection_extra=None, request_observer=None, **kwargs):
         uploads = {}
         response_iterator = iter(responses)
         observed = []
         def request(session, method, url, **options):
+            if request_observer is not None:
+                request_observer(session, method, url, options)
             observed.append((session.auth, session.headers.get('X-API-Key'), url))
             payload, headers, status = next(response_iterator)
             response = requests.Response()
@@ -191,7 +224,9 @@ class RestTests(unittest.TestCase):
         def upload(**options):
             uploads[options['object_name']] = Path(options['filename']).read_text(encoding='utf-8')
         connection = Connection(conn_id='api', conn_type='http', host='https://api.example',
-                                login='user', password='password', extra='{"X-API-Key":"secret"}')
+                                login='user', password='password', extra=json.dumps(
+                                    connection_extra if connection_extra is not None
+                                    else {'X-API-Key': 'secret'}))
         ti = MagicMock()
         with TemporaryDirectory() as directory:
             config_path = Path(directory, 'config.yml')
