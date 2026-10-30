@@ -1,0 +1,39 @@
+dag_defaults:
+  description: 'Enrich distinct customer countries from the countries API.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags:
+    - 'Run me first'
+
+project_id: 'healthy-pager-398915'
+
+datasets:
+  staging: 'staging'
+  transform: 'transform'
+  model: 'model'
+  utilities: 'utilities'
+
+connection_id: 'countries_api'
+
+wait_for_dags:
+  - external_dag_id: 'staging_synthetic_subscription_api_import'
+
+extraction_settings:
+  max_workers: 2
+  requests_per_second: 2
+  
+end_points:
+  - {
+      'name': 'countries', 
+      'request': 'GET', 
+      'path': '/countries/v5/codes.alpha_2', 
+      'input_sql': 'queries/production/countries.sql',
+      'records_path': 'data.objects.0',
+        'request_params': {
+        'q': 'country_id',
+      }
+    }
+

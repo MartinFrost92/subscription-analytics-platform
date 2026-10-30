@@ -1,0 +1,177 @@
+[
+    {
+        "name":  "names",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "codes",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "capitals",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "flag",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "region",
+        "type":  "STRING",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "subregion",
+        "type":  "STRING",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "area",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "assets",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "borders",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "calling_codes",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "cars",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "classification",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "continents",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "coordinates",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "currencies",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "date",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "demonyms",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "descriptions",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "economy",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "government_type",
+        "type":  "STRING",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "landlocked",
+        "type":  "BOOLEAN",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "languages",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "leaders",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "links",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "memberships",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "number_format",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "parent",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "population",
+        "type":  "INTEGER",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "postal_code",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "timezones",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "tlds",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "units",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "uuid",
+        "type":  "STRING",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "_match",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    },
+    {
+        "name":  "_meta",
+        "type":  "JSON",
+        "mode":  "NULLABLE"
+    }
+]
