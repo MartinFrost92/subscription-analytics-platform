@@ -1,0 +1,33 @@
+table dim_product
+	lineageTag: 6f44c13c-b768-4718-94e1-6bc2a0b62907
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		lineageTag: f888dd35-1774-45b9-ad7a-0c1d50814992
+		summarizeBy: none
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product
+		dataType: string
+		lineageTag: ba43f82a-3845-4e19-935f-ff21124ffd21
+		summarizeBy: none
+		sourceColumn: product
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    dim_product_Table = model_Schema{[Name="dim_product",Kind="Table"]}[Data]
+				in
+				    dim_product_Table
+
+	annotation PBI_ResultType = Table
+

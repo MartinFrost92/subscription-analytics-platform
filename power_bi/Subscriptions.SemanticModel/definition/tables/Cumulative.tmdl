@@ -1,0 +1,37 @@
+table Cumulative
+	lineageTag: 90a240d3-0294-4b47-9f12-7b92aa169bcc
+
+	calculationGroup
+
+		calculationItem Yes =
+				
+				VAR CurrentDate = SELECTEDVALUE( dim_date[date] )
+				RETURN
+				    CALCULATE (
+				        SELECTEDMEASURE(),
+				        FILTER (
+				            ALLSELECTED ( dim_date ),
+				            dim_date[date] <= CurrentDate
+				        )
+				    )
+
+		calculationItem No = SELECTEDMEASURE()
+
+	column Cumulative
+		dataType: string
+		lineageTag: 9fa4132b-8969-495c-a7da-063db1de927d
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f9bdbee-be9e-4ebc-b80f-2ea9fb02de14
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

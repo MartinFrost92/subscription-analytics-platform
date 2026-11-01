@@ -1,0 +1,71 @@
+relationship b6202c95-8390-4e48-bc93-5b0e865776de
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_customer.created_at
+	toColumn: LocalDateTable_d46b015d-1f64-4928-b56b-883329c85c00.Date
+
+relationship 6694efdc-9a27-4565-af25-b4720e1e9b18
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_invoice.start_date
+	toColumn: LocalDateTable_07e308b3-e233-4906-8bf3-d1d87deee886.Date
+
+relationship 808bbead-3ba9-4abc-b6fe-74c51c67b09d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_invoice.stop_date
+	toColumn: LocalDateTable_7b2549ce-618c-4802-8d0b-6dd78f3865d4.Date
+
+relationship 6f3e94eb-ce24-44fa-ac29-f8603bcbfd5c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_subscription.start_date
+	toColumn: LocalDateTable_8aa48dff-eb1d-430f-8780-8bb90e92f9d6.Date
+
+relationship 4b567da9-b61d-4f19-b4c0-f91955dd8800
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_subscription.stop_date
+	toColumn: LocalDateTable_f9b84db6-2028-4b0b-b9bf-e201c001cd90.Date
+
+relationship 2d77a034-7d81-4141-93ee-ff0defe3181f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_revenue.updated_at
+	toColumn: LocalDateTable_d4a32821-c170-4d8a-81ec-d469866b43f1.Date
+
+relationship 1f76cb88-e811-44db-8960-05b35545dcc6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_subscription_inventory.updated_at
+	toColumn: LocalDateTable_beeadfa1-bf5d-4095-89ef-7c11422a3ce7.Date
+
+relationship AutoDetected_a850090d-5ab6-4247-881f-5711a9c88727
+	fromColumn: fact_revenue.customer_key
+	toColumn: dim_customer.customer_key
+
+relationship AutoDetected_a44a56cd-c6a8-4103-a6f1-49ad659040a2
+	fromColumn: fact_subscription_inventory.customer_key
+	toColumn: dim_customer.customer_key
+
+relationship AutoDetected_03cffcf9-d99f-4d48-aa4e-f051bbab5320
+	fromColumn: fact_revenue.invoice_key
+	toColumn: dim_invoice.invoice_key
+
+relationship AutoDetected_32518900-4439-409b-b131-f6481b9ea810
+	fromColumn: fact_revenue.product_key
+	toColumn: dim_product.product_key
+
+relationship AutoDetected_85826fcb-6719-4d3e-95ed-b112bfceec76
+	fromColumn: fact_subscription_inventory.product_key
+	toColumn: dim_product.product_key
+
+relationship AutoDetected_d98d18cc-4309-4543-a44f-e7b9ed8b69d4
+	fromColumn: fact_revenue.subscription_key
+	toColumn: dim_subscription.subscription_key
+
+relationship AutoDetected_ebe44f19-40ef-495f-bf86-51b97cc8c267
+	fromColumn: fact_subscription_inventory.subscription_key
+	toColumn: dim_subscription.subscription_key
+
+relationship bb0f4614-2b2a-c6d3-eac5-c7e1df30d123
+	fromColumn: fact_revenue.date
+	toColumn: dim_date.date
+
+relationship cfd2253d-b5b8-954c-2218-880366801c23
+	fromColumn: fact_subscription_inventory.date
+	toColumn: dim_date.date
+

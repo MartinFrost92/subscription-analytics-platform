@@ -29,6 +29,8 @@ WITH subscription_details AS (
 )
 SELECT
     start_date AS date,
+    start_date,
+    stop_date,
     account_id,
     subscription_id,
     account_name,
@@ -45,6 +47,8 @@ UNION ALL
 
 SELECT
     stop_date AS date,
+    start_date,
+    stop_date,
     account_id,
     subscription_id,
     account_name,

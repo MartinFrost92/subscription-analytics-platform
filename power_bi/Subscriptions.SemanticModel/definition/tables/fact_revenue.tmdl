@@ -1,0 +1,113 @@
+table fact_revenue
+	isHidden
+	lineageTag: 93fbcd92-cda5-4cdb-b8fd-9c7cba041f33
+
+	column date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 6fc8f272-2448-4751-bdaa-94f1f90ce867
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column customer_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cda88f33-d826-43d9-974a-9aeddddf4507
+		summarizeBy: none
+		sourceColumn: customer_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3a06e361-c788-46b5-a089-72ff0e37ac40
+		summarizeBy: none
+		sourceColumn: product_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 78baf2a6-08f1-451f-bc46-e1ea3bf0c8bd
+		summarizeBy: none
+		sourceColumn: subscription_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9c8b1c1a-6153-4a11-903e-e75ea2f03f17
+		summarizeBy: none
+		sourceColumn: invoice_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column daily_revenue
+		dataType: double
+		isHidden
+		lineageTag: 7569eab3-02cd-40bd-9f1e-76a5e2317326
+		summarizeBy: sum
+		sourceColumn: daily_revenue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column updated_at
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 98af4b26-0dac-4a3e-9f85-f656ed2e86cf
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		variation Variation
+			isDefault
+			relationship: 2d77a034-7d81-4141-93ee-ff0defe3181f
+			defaultHierarchy: LocalDateTable_d4a32821-c170-4d8a-81ec-d469866b43f1.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fact_revenue = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    fact_revenue_Table = model_Schema{[Name="fact_revenue",Kind="Table"]}[Data]
+				in
+				    fact_revenue_Table
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

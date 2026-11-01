@@ -3,7 +3,10 @@ set -euo pipefail
 
 die() { printf 'Setup failed: %s\n' "$*" >&2; exit 1; }
 service_account='airflow-writer@healthy-pager-398915.iam.gserviceaccount.com'
-if command -v gcloud >/dev/null 2>&1; then
+# Git Bash's Unix launcher can miss Python while the Windows launcher works.
+if [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]] && command -v gcloud.cmd >/dev/null 2>&1; then
+    gcloud_cli=gcloud.cmd
+elif command -v gcloud >/dev/null 2>&1; then
     gcloud_cli=gcloud
 elif command -v gcloud.cmd >/dev/null 2>&1; then
     gcloud_cli=gcloud.cmd

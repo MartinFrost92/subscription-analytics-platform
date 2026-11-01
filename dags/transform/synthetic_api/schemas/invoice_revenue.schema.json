@@ -3,6 +3,7 @@
     {"name": "invoice_number", "type": "INTEGER", "mode": "REQUIRED"},
     {"name": "account_id", "type": "INTEGER", "mode": "REQUIRED"},
     {"name": "subscription_id", "type": "INTEGER", "mode": "REQUIRED"},
+    {"name": "product", "type": "STRING", "mode": "NULLABLE"},
     {"name": "start_date", "type": "DATE", "mode": "REQUIRED"},
     {"name": "stop_date", "type": "DATE", "mode": "REQUIRED"},
     {"name": "charge", "type": "NUMERIC", "mode": "REQUIRED"},

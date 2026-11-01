@@ -1,0 +1,73 @@
+table dim_subscription
+	lineageTag: 73524277-e9c5-4761-8be2-3e8a828ca741
+
+	column subscription_key
+		dataType: int64
+		formatString: 0
+		lineageTag: ccd19262-b08b-4b2e-b2aa-b8b2e7017feb
+		summarizeBy: none
+		sourceColumn: subscription_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_id
+		dataType: string
+		lineageTag: df4fb99e-5380-4a4d-aab5-6c896a06df6a
+		summarizeBy: none
+		sourceColumn: subscription_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 216e24d5-6888-4dfd-a586-2dcb501ebbae
+		summarizeBy: none
+		sourceColumn: start_date
+
+		variation Variation
+			isDefault
+			relationship: 6f3e94eb-ce24-44fa-ac29-f8603bcbfd5c
+			defaultHierarchy: LocalDateTable_8aa48dff-eb1d-430f-8780-8bb90e92f9d6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column stop_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: dde3e64f-0acf-425e-b2a9-6970e7ff5e59
+		summarizeBy: none
+		sourceColumn: stop_date
+
+		variation Variation
+			isDefault
+			relationship: 4b567da9-b61d-4f19-b4c0-f91955dd8800
+			defaultHierarchy: LocalDateTable_f9b84db6-2028-4b0b-b9bf-e201c001cd90.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column current_status
+		dataType: string
+		lineageTag: 06334756-1468-46ed-8ce1-16b51eeceae1
+		summarizeBy: none
+		sourceColumn: current_status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_subscription = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    dim_subscription_Table = model_Schema{[Name="dim_subscription",Kind="Table"]}[Data]
+				in
+				    dim_subscription_Table
+
+	annotation PBI_ResultType = Table
+

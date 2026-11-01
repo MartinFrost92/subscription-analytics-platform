@@ -1,0 +1,37 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-DK
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["dim_customer","dim_date","dim_invoice","dim_product","dim_subscription","exchange_rates","fact_revenue","fact_subscription_inventory","Values"]
+
+annotation PBI_ProTooling = ["CalcGroup","DevMode"]
+
+ref table dim_customer
+ref table DateTableTemplate_ef4aa4b6-02ff-4bab-9e63-ba414aa79e90
+ref table LocalDateTable_d46b015d-1f64-4928-b56b-883329c85c00
+ref table dim_date
+ref table dim_invoice
+ref table LocalDateTable_07e308b3-e233-4906-8bf3-d1d87deee886
+ref table LocalDateTable_7b2549ce-618c-4802-8d0b-6dd78f3865d4
+ref table dim_product
+ref table dim_subscription
+ref table LocalDateTable_8aa48dff-eb1d-430f-8780-8bb90e92f9d6
+ref table LocalDateTable_f9b84db6-2028-4b0b-b9bf-e201c001cd90
+ref table exchange_rates
+ref table fact_revenue
+ref table LocalDateTable_d4a32821-c170-4d8a-81ec-d469866b43f1
+ref table fact_subscription_inventory
+ref table LocalDateTable_beeadfa1-bf5d-4095-89ef-7c11422a3ce7
+ref table Values
+ref table Cumulative
+
+ref cultureInfo en-US
+

@@ -1,5 +1,7 @@
 [
     {"name": "date", "type": "DATE", "mode": "NULLABLE"},
+    {"name": "start_date", "type": "DATE", "mode": "NULLABLE"},
+    {"name": "stop_date", "type": "DATE", "mode": "NULLABLE"},
     {"name": "account_id", "type": "INTEGER", "mode": "REQUIRED"},
     {"name": "subscription_id", "type": "INTEGER", "mode": "NULLABLE"},
     {"name": "account_name", "type": "STRING", "mode": "REQUIRED"},
