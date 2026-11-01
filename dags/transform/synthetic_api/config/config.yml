@@ -17,6 +17,7 @@ datasets:
 
 wait_for_dags:
   - external_dag_id: 'staging_synthetic_subscription_api_import'
+  - external_dag_id: 'transform_genderize_names'
 
 delta_load_tables:
   - {'name': 'invoice_revenue', 'depends_on': null}
