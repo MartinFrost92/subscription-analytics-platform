@@ -2,6 +2,7 @@
 set -euo pipefail
 
 die() { printf 'Setup failed: %s\n' "$*" >&2; exit 1; }
+service_account='airflow-writer@healthy-pager-398915.iam.gserviceaccount.com'
 if command -v gcloud >/dev/null 2>&1; then
     gcloud_cli=gcloud
 elif command -v gcloud.cmd >/dev/null 2>&1; then
@@ -10,8 +11,6 @@ else
     die 'Install Google Cloud CLI first: https://cloud.google.com/sdk/docs/install (Windows: winget install --id Google.CloudSDK --exact). Reopen your terminal afterward.'
 fi
 "$gcloud_cli" --version >/dev/null 2>&1 || die 'Google Cloud CLI could not start. Repair its installation, including bundled Python, and reopen your terminal.'
-printf 'Checking Google Application Default Credentials...\n'
-"$gcloud_cli" auth application-default print-access-token >/dev/null || die "Google authentication is missing or invalid. Run: $gcloud_cli auth application-default login, then rerun setup."
 gcloud_config_dir=$("$gcloud_cli" info --format='value(config.paths.global_config_dir)')
 gcloud_config_dir=${gcloud_config_dir//$'\r'/}
 # Windows gcloud returns a Windows path even when called from Git Bash or WSL.
@@ -21,13 +20,34 @@ elif [[ "$gcloud_config_dir" =~ ^[A-Za-z]: ]] && command -v wslpath >/dev/null 2
     gcloud_config_dir=$(wslpath -u "$gcloud_config_dir")
 fi
 adc_path="$gcloud_config_dir/application_default_credentials.json"
-[[ -f "$adc_path" ]] || die "Google ADC file was not found. Run: $gcloud_cli auth application-default login, then rerun setup."
 
 command -v docker >/dev/null 2>&1 || die 'Install Docker with Docker Compose v2 first.'
 docker compose version >/dev/null 2>&1 || die 'Docker Compose v2 is required.'
 docker info >/dev/null 2>&1 || die 'Start Docker (Linux containers) and check docker info.'
 [[ $(docker info --format '{{.OSType}}') == linux ]] || die 'Switch Docker to Linux containers.'
 docker compose up --help | grep -q -- '--wait-timeout' || die 'Update Docker Compose to v2.14 or newer.'
+
+printf 'Checking ADC impersonation of %s...\n' "$service_account"
+# Inspect credential metadata only. Never accept direct-user ADC or another target.
+adc_matches=false
+if [[ -f "$adc_path" ]]; then
+    if docker run --rm -i --entrypoint python apache/airflow:3.1.7-python3.12 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+except ValueError:
+    sys.exit(1)
+expected = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/" + sys.argv[1] + ":generateAccessToken"
+sys.exit(0 if data.get("type") == "impersonated_service_account" and data.get("service_account_impersonation_url") == expected else 1)
+' "$service_account" < "$adc_path"; then
+        adc_matches=true
+    fi
+fi
+if [[ "$adc_matches" != true ]] || ! "$gcloud_cli" auth application-default print-access-token >/dev/null 2>&1; then
+    printf 'Complete browser sign-in with your own Google account to impersonate %s.\n' "$service_account"
+    "$gcloud_cli" auth application-default login --impersonate-service-account="$service_account" --disable-quota-project || die "Impersonation login failed. Your Google account needs roles/iam.serviceAccountTokenCreator on $service_account; its project must have the IAM Service Account Credentials API enabled."
+fi
+"$gcloud_cli" auth application-default print-access-token >/dev/null || die "Cannot impersonate $service_account. Ask the administrator to grant your Google account Service Account Token Creator on that service account and enable iamcredentials.googleapis.com."
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../container"
 # Keep Git Bash from converting container paths to Windows paths.
@@ -37,7 +57,6 @@ if [[ ! -f secrets/google-adc.json ]] || ! [[ "$adc_path" -ef secrets/google-adc
     cp "$adc_path" secrets/google-adc.json
 fi
 compose=(docker compose -f compose.yaml -f compose.bigquery.yaml)
-
 if [[ ! -e .env ]]; then
     printf 'Creating container/.env with random local secrets...\n'
     # The existing runtime image avoids requiring host Python or OpenSSL.
@@ -79,6 +98,16 @@ print("\n".join(lines))
 fi
 
 "${compose[@]}" config --quiet
+# Read the target from Compose so cloud provisioning and Airflow cannot drift.
+cloud_project=$("${compose[@]}" config --format json | docker run --rm -i --entrypoint python apache/airflow:3.1.7-python3.12 -c 'import json,sys; print(json.load(sys.stdin)["services"]["airflow-scheduler"]["environment"]["GOOGLE_CLOUD_PROJECT"])')
+cloud_project=${cloud_project//$'\r'/}
+# google-auth applies GOOGLE_CLOUD_QUOTA_PROJECT to impersonated credentials.
+# Avoid gcloud set-quota-project, which is incompatible with some impersonated ADC versions.
+cp "$adc_path" secrets/google-adc.json
+printf 'Preparing Google Cloud API and datasets before starting services...\n'
+"${compose[@]}" run --rm --no-deps --entrypoint python airflow-scheduler /opt/airflow/scripts/setup-bigquery.py || die "Google Cloud preparation failed for $cloud_project. See the permission details above; a project administrator must grant missing access."
+
+
 printf 'Starting PostgreSQL...\n'
 "${compose[@]}" up -d --build metadata-db analytics-db
 # Older volumes may lack subscription_source, which its health check requires.

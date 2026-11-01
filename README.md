@@ -37,20 +37,18 @@ source API with dedicated PostgreSQL. The BigQuery overlay enables Google Cloud 
 
 ## Run
 
-Authenticate before running setup:
-
 ```bash
-gcloud auth application-default login
-```
-
-```bash
-git clone https://github.com/MartinFrost92/subscription-analytics-platform.git
 cd subscription-analytics-platform
 bash scripts/setup.sh
 ```
 
-Setup checks Google Cloud CLI and authentication before starting services,
-copies ADC credentials automatically, and enables the BigQuery connection.
+Setup opens Google sign-in when needed and creates ADC that impersonates
+`airflow-writer@healthy-pager-398915.iam.gserviceaccount.com`. It sets the quota project,
+enables the BigQuery API, creates missing EU datasets, and checks query access
+before starting services. It copies ADC credentials automatically.
+Your Google account needs Service Account Token Creator on that service account.
+The service account holds the project permissions; your account does not need
+direct BigQuery access. Setup reports missing administrator grants.
 It preserves existing secrets and database volumes and completes only after
 Google Cloud access checks pass.
 
