@@ -1,0 +1,69 @@
+table dim_customer
+	lineageTag: fbeb3f0c-a7f8-40bb-98f3-df91007a3a6f
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 06aa318b-62fd-4561-bbfe-3bce052370eb
+		summarizeBy: none
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_id
+		dataType: string
+		lineageTag: 94a4d07e-08ba-4cbc-ab2d-c22e17464b9d
+		summarizeBy: none
+		sourceColumn: account_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_name
+		dataType: string
+		lineageTag: 0e55be64-4cc3-439c-86f7-10d75ab56489
+		summarizeBy: none
+		sourceColumn: account_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_country
+		dataType: string
+		lineageTag: a7939498-17bb-49af-85a0-89f9ea05d9e4
+		summarizeBy: none
+		sourceColumn: account_country
+
+		annotation SummarizationSetBy = Automatic
+
+	column gender
+		dataType: string
+		lineageTag: ae2e9c25-cfd6-4797-9ff2-96d6afe19207
+		summarizeBy: none
+		sourceColumn: gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 73d3049c-088e-443c-a522-b7fea0024b47
+		summarizeBy: none
+		sourceColumn: created_at
+
+		variation Variation
+			isDefault
+			relationship: b6202c95-8390-4e48-bc93-5b0e865776de
+			defaultHierarchy: LocalDateTable_d46b015d-1f64-4928-b56b-883329c85c00.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    dim_customer_Table = model_Schema{[Name="dim_customer",Kind="Table"]}[Data]
+				in
+				    dim_customer_Table
+

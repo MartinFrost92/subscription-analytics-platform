@@ -1,0 +1,84 @@
+table dim_date
+	lineageTag: e627cbcd-1bcf-40d6-a97a-a01463a56833
+	dataCategory: Time
+
+	column date
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: c993e4e0-6723-49ca-80a1-f2dd4edf7733
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column month_name
+		dataType: string
+		lineageTag: 9755caa7-47b0-47ff-af1d-60e599b0bf9a
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month_number
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_number
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c5a08910-3cb6-4994-b3c4-c74cc2e5714f
+		summarizeBy: sum
+		sourceColumn: month_number
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: string
+		lineageTag: ca61f738-08bc-45cc-812d-de9c2a0fb6b7
+		summarizeBy: none
+		sourceColumn: quarter
+		sortByColumn: quarter_number
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter_number
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 71bac100-30d1-4f23-aa1c-bcf1b3e3b1d9
+		summarizeBy: sum
+		sourceColumn: quarter_number
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e3a105c-d97e-4bad-bb09-93d7fbf39628
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    dim_date_Table = model_Schema{[Name="dim_date",Kind="Table"]}[Data]
+				in
+				    dim_date_Table
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,63 @@
+table Values
+	lineageTag: 8cea3db8-90ad-4691-bd5a-5e5fadde3948
+
+	measure Sales =
+			
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK(
+			        fact_subscription_inventory[subscription_key]),
+			        FILTER(fact_subscription_inventory,fact_subscription_inventory[is_sale]=TRUE()
+			        )
+			)
+		formatString: #,0
+		lineageTag: 44f4c7a4-6b16-41cd-a154-62a8d96d30f7
+
+	measure Churn =
+			
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK(
+			        fact_subscription_inventory[subscription_key]),
+			        FILTER(fact_subscription_inventory,fact_subscription_inventory[is_sale]=FALSE()
+			        )
+			)
+		formatString: #,0
+		lineageTag: ef165bdb-c9ef-4806-a212-f4f85659378b
+
+	measure Revenue =
+			
+			SUM(fact_revenue[daily_revenue])
+		formatString: #,0.00\ "kr.";-#,0.00\ "kr.";#,0.00\ "kr."
+		lineageTag: 886ca148-b7b4-42b3-9c8c-8aea050a5804
+
+		annotation PBI_FormatHint = {"currencyCulture":"da-DK"}
+
+	measure Inventory =
+			
+			VAR StartDate =
+			    MINX ( ALLSELECTED ( dim_date[date] ), dim_date[date] )
+			VAR CurrentDate =
+			    MAX ( dim_date[date] )
+			RETURN
+			    CALCULATE (
+			        [Sales] - [Churn],
+			        FILTER (
+			            ALLSELECTED ( dim_date[date] ),
+			            dim_date[date] >= StartDate
+			                && dim_date[date] <= CurrentDate
+			        )
+			    )
+		formatString: #,0
+		lineageTag: 324ec0aa-d813-48dc-8d48-df02e37c539a
+
+	partition Values = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

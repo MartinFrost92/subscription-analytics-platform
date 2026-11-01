@@ -31,7 +31,8 @@ docker() {
         *) return 99 ;;
     esac
 }
-export -f gcloud docker
+gcloud.cmd() { gcloud "$@"; }
+export -f gcloud gcloud.cmd docker
 for scenario in direct valid expired denied; do
     export metadata_status=1 token_status=0 login_status=0
     case "$scenario" in

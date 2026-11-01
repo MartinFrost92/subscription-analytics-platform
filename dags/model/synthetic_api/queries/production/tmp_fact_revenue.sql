@@ -1,13 +1,19 @@
 SELECT
     revenue.date,
-    revenue.account_id AS customer_key,
-    FARM_FINGERPRINT(CAST(subscriptions.product AS STRING)) AS product_key,
-    revenue.subscription_id AS subscription_key,
-    revenue.invoice_number AS invoice_key,
+    customer.customer_key,
+    product.product_key,
+    subscription.subscription_key,
+    invoice.invoice_key,
     revenue.daily_revenue,
-    GREATEST(revenue.updated_at, subscriptions.updated_at) AS updated_at
+    revenue.updated_at
 FROM `{{ params.project_id }}.{{ params.datasets.transform }}.invoice_revenue` AS revenue
-JOIN `{{ params.project_id }}.{{ params.datasets.staging }}.subscriptions` AS subscriptions USING (subscription_id)
+LEFT JOIN `{{ params.project_id }}.{{ params.datasets.model }}.dim_customer` AS customer
+    ON CAST(revenue.account_id AS STRING) = customer.account_id
+LEFT JOIN `{{ params.project_id }}.{{ params.datasets.model }}.dim_product` AS product
+    ON revenue.product = product.product
+LEFT JOIN `{{ params.project_id }}.{{ params.datasets.model }}.dim_subscription` AS subscription
+    ON CAST(revenue.subscription_id AS STRING) = subscription.subscription_id
+LEFT JOIN `{{ params.project_id }}.{{ params.datasets.model }}.dim_invoice` AS invoice
+    ON CAST(revenue.invoice_number AS STRING) = invoice.invoice_number
 WHERE revenue.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
-    OR subscriptions.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
     OR NOT EXISTS (SELECT 1 FROM `{{ params.project_id }}.{{ params.datasets.model }}.fact_revenue`)

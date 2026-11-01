@@ -1,7 +1,8 @@
-SELECT
+SELECT DISTINCT
     account_id AS customer_key,
     CAST(account_id AS STRING) AS account_id,
-    name AS account_name,
-    country AS account_country,
-    created_at
-FROM `{{ params.project_id }}.{{ params.datasets.staging }}.customers`
+    account_name,
+    account_country,
+    gender,
+    account_created_at AS created_at
+FROM `{{ params.project_id }}.{{ params.datasets.transform }}.subscription_inventory`

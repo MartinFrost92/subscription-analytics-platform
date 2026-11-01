@@ -6,6 +6,8 @@ WITH subscription_details AS (
         subscriptions.stop_date,
         customers.name AS account_name,
         customers.country AS account_country,
+        customers.created_at AS account_created_at,
+        names.gender,
         subscriptions.product,
         subscriptions.status AS current_status,
         GREATEST(
@@ -14,8 +16,12 @@ WITH subscription_details AS (
         ) AS updated_at
     FROM `{{ params.project_id }}.{{ params.datasets.staging }}.subscriptions` AS subscriptions
     LEFT JOIN `{{ params.project_id }}.{{ params.datasets.staging }}.customers` AS customers USING (account_id)
+    LEFT JOIN `{{ params.project_id }}.{{ params.datasets.transform }}.names` AS names
+        ON LOWER(REGEXP_EXTRACT(TRIM(customers.name), r'^[^ ]+')) = names.name
+        AND UPPER(TRIM(customers.country)) = names.country_id
     WHERE subscriptions.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
         OR customers.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
+        OR names.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
         OR NOT EXISTS (
             SELECT 1
             FROM `{{ params.project_id }}.{{ params.datasets.transform }}.subscription_inventory`
@@ -23,10 +29,14 @@ WITH subscription_details AS (
 )
 SELECT
     start_date AS date,
+    start_date,
+    stop_date,
     account_id,
     subscription_id,
     account_name,
     account_country,
+    account_created_at,
+    gender,
     product,
     current_status,
     updated_at,
@@ -37,10 +47,14 @@ UNION ALL
 
 SELECT
     stop_date AS date,
+    start_date,
+    stop_date,
     account_id,
     subscription_id,
     account_name,
     account_country,
+    account_created_at,
+    gender,
     product,
     current_status,
     updated_at,

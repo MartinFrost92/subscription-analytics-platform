@@ -1,0 +1,85 @@
+table dim_invoice
+	lineageTag: 73ab18ea-0ad9-4b6c-b722-31d5d7eb9c01
+
+	column invoice_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 776fbf33-1d6d-4d28-9a96-a9c840cdd192
+		summarizeBy: none
+		sourceColumn: invoice_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_number
+		dataType: string
+		lineageTag: c252e10b-f196-4676-a8db-cd5737988927
+		summarizeBy: none
+		sourceColumn: invoice_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cc2e099b-0717-41ca-9ea8-4fefd6444a0a
+		summarizeBy: none
+		sourceColumn: start_date
+
+		variation Variation
+			isDefault
+			relationship: 6694efdc-9a27-4565-af25-b4720e1e9b18
+			defaultHierarchy: LocalDateTable_07e308b3-e233-4906-8bf3-d1d87deee886.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column stop_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: be52c019-5d01-491e-9228-63d2c590cc5c
+		summarizeBy: none
+		sourceColumn: stop_date
+
+		variation Variation
+			isDefault
+			relationship: 808bbead-3ba9-4abc-b6fe-74c51c67b09d
+			defaultHierarchy: LocalDateTable_7b2549ce-618c-4802-8d0b-6dd78f3865d4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column charge
+		dataType: double
+		lineageTag: 0550d900-a2a3-4bec-9c1b-d0e714d2e6b3
+		summarizeBy: sum
+		sourceColumn: charge
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column discount
+		dataType: double
+		lineageTag: 7bf8f080-c1be-4b75-a4ae-45fd5fc631e1
+		summarizeBy: sum
+		sourceColumn: discount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition dim_invoice = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    dim_invoice_Table = model_Schema{[Name="dim_invoice",Kind="Table"]}[Data]
+				in
+				    dim_invoice_Table
+
+	annotation PBI_ResultType = Table
+

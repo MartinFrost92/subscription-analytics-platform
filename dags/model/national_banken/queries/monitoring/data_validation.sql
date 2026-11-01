@@ -1,8 +1,8 @@
 WITH totals AS (
     SELECT
-        'exchange_rates_row_count',
-        (SELECT COUNT(*) FROM `{{ params.project_id }}.{{ params.datasets.model }}.exchange_rates`),
-        (SELECT COUNT(*) FROM `{{ params.project_id }}.{{ params.datasets.transform }}.exchange_rates`)
+        'exchange_rates_row_count' AS test_name,
+        CAST((SELECT COUNT(*) FROM `{{ params.project_id }}.{{ params.datasets.model }}.exchange_rates`) AS NUMERIC) AS output_value,
+        CAST((SELECT COUNT(*) FROM `{{ params.project_id }}.{{ params.datasets.transform }}.exchange_rates`) AS NUMERIC) AS source_value
 )
 
 SELECT

@@ -20,6 +20,11 @@
         "mode": "REQUIRED"
     },
     {
+        "name": "gender",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
         "name": "created_at",
         "type": "TIMESTAMP",
         "mode": "REQUIRED"

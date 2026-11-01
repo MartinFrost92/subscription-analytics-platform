@@ -1,11 +1,16 @@
 WITH invoice_amounts AS (
     SELECT
-        *,
+        invoices.* EXCEPT(updated_at),
+        subscriptions.product,
+        GREATEST(invoices.updated_at, COALESCE(subscriptions.updated_at, invoices.updated_at)) AS updated_at,
         charge - discount AS net_revenue,
-        DATE_DIFF(stop_date, start_date, DAY) AS number_of_days,
-        SAFE_DIVIDE(charge - discount, DATE_DIFF(stop_date, start_date, DAY)) AS daily_amount
-    FROM `{{ params.project_id }}.{{ params.datasets.staging }}.invoices`
-    WHERE updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
+        DATE_DIFF(invoices.stop_date, invoices.start_date, DAY) AS number_of_days,
+        SAFE_DIVIDE(charge - discount, DATE_DIFF(invoices.stop_date, invoices.start_date, DAY)) AS daily_amount
+    FROM `{{ params.project_id }}.{{ params.datasets.staging }}.invoices` AS invoices
+    LEFT JOIN `{{ params.project_id }}.{{ params.datasets.staging }}.subscriptions` AS subscriptions
+        USING(subscription_id)
+    WHERE invoices.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
+        OR subscriptions.updated_at >= DATE_SUB(DATE('{{ data_interval_end | ds }}'), INTERVAL {{ params.variables.date_window }} DAY)
         OR NOT EXISTS (
             SELECT 1
             FROM `{{ params.project_id }}.{{ params.datasets.transform }}.invoice_revenue`
@@ -16,6 +21,7 @@ SELECT
     invoice_number,
     account_id,
     subscription_id,
+    product,
     start_date,
     stop_date,
     charge,

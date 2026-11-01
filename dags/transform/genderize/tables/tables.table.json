@@ -1,0 +1,9 @@
+[
+    {
+        "dataset_id": "{{ params.datasets.transform }}",
+        "table_id": "names",
+        "schema_fields": {% include "schemas/names.schema.json" %},
+        "timePartitioning": {"type": "DAY", "field": "updated_at"},
+        "clustering": {"fields": ["name", "country_id"]}
+    }
+]

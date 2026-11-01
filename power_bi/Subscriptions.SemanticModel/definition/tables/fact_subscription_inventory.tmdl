@@ -1,0 +1,100 @@
+table fact_subscription_inventory
+	isHidden
+	lineageTag: 8eda483b-9094-40d9-b81a-eb7eeffa06e3
+
+	column date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 9f9161da-1756-4803-a5a1-c34ca68c7d6c
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column customer_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 00effd73-5f6b-45d4-aff8-3e03d0ed8689
+		summarizeBy: none
+		sourceColumn: customer_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 52ece1b2-70f7-4ded-9aca-10b2beae6975
+		summarizeBy: none
+		sourceColumn: product_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: af414dbc-9b19-4509-a685-c3ab6173024a
+		summarizeBy: none
+		sourceColumn: subscription_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_sale
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 74c4f30c-2f59-40f7-bdad-45dd1a0dc7f8
+		summarizeBy: none
+		sourceColumn: is_sale
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column updated_at
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: ac7977be-42db-49e5-a7ad-f1bebfc8ff7f
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		variation Variation
+			isDefault
+			relationship: 1f76cb88-e811-44db-8960-05b35545dcc6
+			defaultHierarchy: LocalDateTable_beeadfa1-bf5d-4095-89ef-7c11422a3ce7.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fact_subscription_inventory = m
+		mode: import
+		source =
+				let
+				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
+				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
+				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
+				    fact_subscription_inventory_Table = model_Schema{[Name="fact_subscription_inventory",Kind="Table"]}[Data]
+				in
+				    fact_subscription_inventory_Table
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
