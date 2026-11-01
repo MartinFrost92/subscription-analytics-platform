@@ -1,0 +1,26 @@
+dag_defaults:
+  description: 'Publish current Nationalbanken currency conversion pairs to the model layer.'
+  default_args:
+    owner: 'Martin Frost Hamann'
+  schedule: "0 5 * * *"
+  start_date: "2026-10-26"
+  catchup: false
+  tags: ['Run me last!']
+
+stage: model
+
+project_id: healthy-pager-398915
+
+datasets:
+  transform: transform
+  model: model
+  utilities: utilities
+
+wait_for_dags:
+  - external_dag_id: transform_national_banken_exchange_rates
+
+full_load_tables:
+  - name: exchange_rates
+    depends_on: null
+
+delta_load_tables: []

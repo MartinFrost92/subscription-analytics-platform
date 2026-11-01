@@ -24,10 +24,19 @@ def main():
         base = "https://serviceusage.googleapis.com/v1/"
         service = f"projects/{project}/services/bigquery.googleapis.com"
         response = session.get(base + service, timeout=60)
-        response.raise_for_status()
-        if response.json().get("state") != "ENABLED":
+        if response.status_code == 403:
+            # Runtime access does not require serviceusage.services.get.
+            # Let the dataset/query calls below establish whether BigQuery works.
+            print("Cannot inspect API settings; checking BigQuery access directly.", flush=True)
+        elif not response.ok:
+            raise RuntimeError(f"Cannot inspect BigQuery API settings: {response.text}")
+        elif response.json().get("state") != "ENABLED":
             response = session.post(base + service + ":enable", json={}, timeout=60)
-            response.raise_for_status()
+            if not response.ok:
+                raise RuntimeError(
+                    f"BigQuery API is disabled and activation failed: {response.text}. "
+                    "A project administrator can enable bigquery.googleapis.com."
+                )
             operation = response.json()
             deadline = time.monotonic() + 180
             while not operation.get("done"):
@@ -39,7 +48,6 @@ def main():
                 operation = response.json()
             if "error" in operation:
                 raise RuntimeError(operation["error"])
-        print(f"PASS BigQuery API enabled in {project}", flush=True)
     with bigquery.Client(project=project, credentials=credentials, location=location) as client:
         for name in ("staging", "transform", "model", "utilities"):
             dataset_id = f"{project}.{name}"
