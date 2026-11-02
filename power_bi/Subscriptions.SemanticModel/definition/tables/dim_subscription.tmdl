@@ -3,10 +3,13 @@ table dim_subscription
 
 	column subscription_key
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: ccd19262-b08b-4b2e-b2aa-b8b2e7017feb
 		summarizeBy: none
 		sourceColumn: subscription_key
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 

@@ -1,27 +1,37 @@
 table exchange_rates
+	isHidden
 	lineageTag: a9984fb0-ce87-4928-979b-2feb19cd8560
 
 	column from_currency
 		dataType: string
+		isHidden
 		lineageTag: 577107fe-cd62-41ff-8035-0d05d904a519
 		summarizeBy: none
 		sourceColumn: from_currency
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 
 	column to_currency
 		dataType: string
+		isHidden
 		lineageTag: 8b788b36-3a27-42f9-9ae0-f7ed1eb117d0
 		summarizeBy: none
 		sourceColumn: to_currency
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 
 	column conversion_rate
 		dataType: double
+		isHidden
 		lineageTag: 4280073e-9d30-4dca-b8be-907314afaab2
 		summarizeBy: sum
 		sourceColumn: conversion_rate
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 
@@ -34,9 +44,14 @@ table exchange_rates
 				    Source = GoogleBigQuery.Database([Implementation="2.0", BillingProject="healthy-pager-398915"]),
 				    #"healthy-pager-398915_Database" = Source{[Name="healthy-pager-398915",Kind="Database"]}[Data],
 				    model_Schema = #"healthy-pager-398915_Database"{[Name="model",Kind="Schema"]}[Data],
-				    exchange_rates_Table = model_Schema{[Name="exchange_rates",Kind="Table"]}[Data]
+				    exchange_rates_Table = model_Schema{[Name="exchange_rates",Kind="Table"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(exchange_rates_Table, each ([from_currency] = "EUR"))
 				in
-				    exchange_rates_Table
+				    #"Filtered Rows"
+
+	changedProperty = IsHidden
 
 	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
 

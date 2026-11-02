@@ -1,9 +1,9 @@
 {
   "version": "1.0",
+  "showHiddenFields": true,
   "autodetectRelationships": true,
   "parallelQueryLoading": true,
   "typeDetectionEnabled": true,
   "relationshipImportEnabled": true,
-  "runBackgroundAnalysis": true,
   "shouldNotifyUserOfNameConflictResolution": true
 }

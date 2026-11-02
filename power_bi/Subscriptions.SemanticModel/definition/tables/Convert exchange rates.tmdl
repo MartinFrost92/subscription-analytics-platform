@@ -1,0 +1,40 @@
+table 'Convert exchange rates'
+	isHidden
+	lineageTag: a0145839-4219-45f2-a8f8-e4b4b7f11bd3
+
+	calculationGroup
+		precedence: 2
+
+		calculationItem 'Exchange rate' =
+				
+				IF(
+				    AND(
+				        SELECTEDMEASURENAME() IN {
+				            "Revenue",
+				            "Average Price Per Unit (ARPU)"
+				        },
+				        ISFILTERED(exchange_rates[to_currency])),
+				    SELECTEDMEASURE()*SELECTEDVALUE(exchange_rates[conversion_rate]),
+				    SELECTEDMEASURE()
+				)
+
+	column 'Connvert exchange rates'
+		dataType: string
+		isHidden
+		lineageTag: 791b87a1-b838-4810-b4c4-e8dda351e73f
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 541a4222-aa71-4ea4-a7af-fa97fa783bf7
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

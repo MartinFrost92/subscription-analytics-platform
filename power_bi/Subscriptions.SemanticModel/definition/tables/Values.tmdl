@@ -10,6 +10,7 @@ table Values
 			        )
 			)
 		formatString: #,0
+		displayFolder: Subscriptions
 		lineageTag: 44f4c7a4-6b16-41cd-a154-62a8d96d30f7
 
 	measure Churn =
@@ -21,12 +22,14 @@ table Values
 			        )
 			)
 		formatString: #,0
+		displayFolder: Subscriptions
 		lineageTag: ef165bdb-c9ef-4806-a212-f4f85659378b
 
 	measure Revenue =
 			
 			SUM(fact_revenue[daily_revenue])
 		formatString: #,0.00\ "kr.";-#,0.00\ "kr.";#,0.00\ "kr."
+		displayFolder: Economy
 		lineageTag: 886ca148-b7b4-42b3-9c8c-8aea050a5804
 
 		annotation PBI_FormatHint = {"currencyCulture":"da-DK"}
@@ -47,7 +50,20 @@ table Values
 			        )
 			    )
 		formatString: #,0
+		displayFolder: Subscriptions
 		lineageTag: 324ec0aa-d813-48dc-8d48-df02e37c539a
+
+	measure 'Average Price Per Unit (ARPU)' =
+			
+			DIVIDE(
+			    [Revenue],
+			    [Inventory]
+			)
+		formatString: #,0.00\ "kr.";-#,0.00\ "kr.";#,0.00\ "kr."
+		displayFolder: Economy
+		lineageTag: f03383fe-d438-450a-ac32-8a2e45e6114c
+
+		annotation PBI_FormatHint = {"currencyCulture":"da-DK"}
 
 	partition Values = m
 		mode: import
