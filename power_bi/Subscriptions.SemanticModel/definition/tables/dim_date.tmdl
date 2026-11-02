@@ -14,29 +14,6 @@ table dim_date
 
 		annotation UnderlyingDateTimeDataType = Date
 
-	column month_name
-		dataType: string
-		lineageTag: 9755caa7-47b0-47ff-af1d-60e599b0bf9a
-		summarizeBy: none
-		sourceColumn: month_name
-		sortByColumn: month_number
-
-		changedProperty = SortByColumn
-
-		annotation SummarizationSetBy = Automatic
-
-	column month_number
-		dataType: int64
-		isHidden
-		formatString: 0
-		lineageTag: c5a08910-3cb6-4994-b3c4-c74cc2e5714f
-		summarizeBy: sum
-		sourceColumn: month_number
-
-		changedProperty = IsHidden
-
-		annotation SummarizationSetBy = Automatic
-
 	column quarter
 		dataType: string
 		lineageTag: ca61f738-08bc-45cc-812d-de9c2a0fb6b7
@@ -66,6 +43,29 @@ table dim_date
 		lineageTag: 4e3a105c-d97e-4bad-bb09-93d7fbf39628
 		summarizeBy: sum
 		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name_year
+		dataType: string
+		lineageTag: 59febb2a-d7ff-40f5-a4f0-81eade5ffe29
+		summarizeBy: none
+		sourceColumn: month_name_year
+		sortByColumn: year_month_sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month_sort
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 99a7ac3d-a2dc-4419-ae64-1e601eb093b1
+		summarizeBy: sum
+		sourceColumn: year_month_sort
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 

@@ -32,6 +32,8 @@ ref table fact_subscription_inventory
 ref table LocalDateTable_beeadfa1-bf5d-4095-89ef-7c11422a3ce7
 ref table Values
 ref table Cumulative
+ref table Year-over-year
+ref table 'Convert exchange rates'
 
 ref cultureInfo en-US
 

@@ -3,10 +3,13 @@ table dim_product
 
 	column product_key
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: f888dd35-1774-45b9-ad7a-0c1d50814992
 		summarizeBy: none
 		sourceColumn: product_key
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 

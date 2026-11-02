@@ -3,10 +3,13 @@ table dim_invoice
 
 	column invoice_key
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: 776fbf33-1d6d-4d28-9a96-a9c840cdd192
 		summarizeBy: none
 		sourceColumn: invoice_key
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 

@@ -1,0 +1,33 @@
+table Year-over-year
+	lineageTag: 55fe5f09-a3cb-4264-91ca-2e0414a6b33f
+
+	calculationGroup
+		precedence: 1
+
+		calculationItem 'Last year' =
+				
+				CALCULATE(
+				    SELECTEDMEASURE(),
+				    SAMEPERIODLASTYEAR('dim_date'[date])
+				)
+
+		calculationItem 'This year' = SELECTEDMEASURE()
+
+	column Year-over-year
+		dataType: string
+		lineageTag: a3f3eb80-d210-47c6-9c15-a1d8ae34984b
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		formatString: 0
+		lineageTag: 9951b2b0-a3f3-424f-8db7-569e9fcd0501
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

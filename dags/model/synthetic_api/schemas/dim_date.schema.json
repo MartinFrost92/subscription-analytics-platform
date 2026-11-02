@@ -5,12 +5,12 @@
         "mode": "REQUIRED"
     },
     {
-        "name": "month_name",
+        "name": "month_name_year",
         "type": "STRING",
         "mode": "REQUIRED"
     },
     {
-        "name": "month_number",
+        "name": "year_month_sort",
         "type": "INTEGER",
         "mode": "REQUIRED"
     },
